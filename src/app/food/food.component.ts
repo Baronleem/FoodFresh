@@ -46,7 +46,7 @@ export class FoodComponent {
 
     const item: FoodItem = {
       id: crypto.randomUUID(),
-      name: this.form.value.name!.trim(),
+      name: this.normalizeName(this.form.value.name!),
       expirationDate: this.form.value.expirationDate!,
       storageLocation: this.form.value.storageLocation!,
       createdAt: new Date().toISOString(),
@@ -104,4 +104,14 @@ export class FoodComponent {
   private sortItems(items: FoodItem[]): FoodItem[] {
     return [...items].sort((a, b) => a.expirationDate.localeCompare(b.expirationDate));
   }
+
+  private normalizeName(input: string): string {
+  return input
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+    .split(' ')
+    .map(w => (w ? w[0].toUpperCase() + w.slice(1) : ''))
+    .join(' ');
+}
 }
