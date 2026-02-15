@@ -2,12 +2,15 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { BehaviorSubject } from 'rxjs';
+
+type StorageLocation = 'fridge' | 'freezer' | 'pantry';
 
 interface FoodItem {
   id: string;
   name: string;
   expirationDate: string; // YYYY-MM-DD
-  storageLocation?: 'fridge' | 'freezer' | 'pantry';
+  storageLocation?: StorageLocation;
   createdAt: string;
 }
 
@@ -25,14 +28,15 @@ export class FoodComponent {
   private readonly STORAGE_KEY = 'foodfresh_items_v1';
   private readonly useSoonDays = 3;
 
+  private readonly itemsSubject = new BehaviorSubject<FoodItem[]>(this.readFromStorage());
+
+  readonly items = toSignal(this.itemsSubject.asObservable(), { initialValue: [] as FoodItem[] });
+
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     expirationDate: ['', Validators.required],
-    storageLocation: ['fridge'],
+    storageLocation: this.fb.control<StorageLocation>('fridge'),
   });
-
-  private itemsSignal = toSignal(this.loadItems(), { initialValue: [] as FoodItem[] });
-  items = this.itemsSignal;
 
   add(): void {
     if (this.form.invalid) {
@@ -44,7 +48,7 @@ export class FoodComponent {
       id: crypto.randomUUID(),
       name: this.form.value.name!,
       expirationDate: this.form.value.expirationDate!,
-      storageLocation: this.form.value.storageLocation || 'fridge',
+      storageLocation: this.form.value.storageLocation!, // typed as StorageLocation
       createdAt: new Date().toISOString(),
     };
 
@@ -60,7 +64,6 @@ export class FoodComponent {
   }
 
   clear(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
     this.saveItems([]);
   }
 
@@ -70,8 +73,7 @@ export class FoodComponent {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const diffDays =
-      (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+    const diffDays = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
 
     if (diffDays < 0) return 'expired';
     if (diffDays <= this.useSoonDays) return 'use-soon';
@@ -80,33 +82,25 @@ export class FoodComponent {
 
   // ---------- helpers ----------
 
-  private loadItems() {
-    return {
-      subscribe: (fn: (v: FoodItem[]) => void) => {
-        fn(this.readFromStorage());
-        return { unsubscribe() {} };
-      },
-    };
-  }
-
   private readFromStorage(): FoodItem[] {
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (!raw) return [];
-      return this.sortItems(JSON.parse(raw));
-    } catch {
+      const parsed = JSON.parse(raw) as FoodItem[];
+      return this.sortItems(Array.isArray(parsed) ? parsed : []);
+    } catch (e) {
+      console.error('Failed to read from localStorage:', e);
       return [];
     }
   }
 
   private saveItems(items: FoodItem[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(items));
-    this.itemsSignal.set(items);
+    const sorted = this.sortItems(items);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sorted));
+    this.itemsSubject.next(sorted);
   }
 
   private sortItems(items: FoodItem[]): FoodItem[] {
-    return [...items].sort((a, b) =>
-      a.expirationDate.localeCompare(b.expirationDate)
-    );
+    return [...items].sort((a, b) => a.expirationDate.localeCompare(b.expirationDate));
   }
 }

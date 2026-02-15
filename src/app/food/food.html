@@ -1,76 +1,39 @@
-<div style="max-width: 520px; margin: 0 auto; padding: 16px; font-family: system-ui;">
-  <div style="display:flex; align-items:center; justify-content: space-between;">
-    <h2 style="margin: 0 0 12px;">FoodFresh</h2>
-    <button type="button" (click)="clearAll()"
-            style="padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
-      Clear
-    </button>
-  </div>
+<div style="max-width:520px;margin:auto;padding:16px;font-family:system-ui;">
+  <h2>FoodFresh</h2>
 
-  <form [formGroup]="form" (ngSubmit)="add()"
-        style="display: grid; gap: 10px; padding: 12px; border: 1px solid #ddd; border-radius: 10px;">
-    <div style="display: grid; gap: 6px;">
-      <label>Food name</label>
-      <input formControlName="name" placeholder="e.g., Milk"
-             style="padding: 10px; border: 1px solid #ccc; border-radius: 8px;" />
-      <small *ngIf="form.controls.name.touched && form.controls.name.invalid" style="color: #b00020;">
-        Name is required (min 2 chars).
-      </small>
-    </div>
+  <form [formGroup]="form" (ngSubmit)="add()" style="display:grid;gap:10px;">
+    <input
+      placeholder="Food name"
+      formControlName="name"
+    />
 
-    <div style="display: grid; gap: 6px;">
-      <label>Expiration date</label>
-      <input type="date" formControlName="expirationDate"
-             style="padding: 10px; border: 1px solid #ccc; border-radius: 8px;" />
-      <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid" style="color: #b00020;">
-        Expiration date is required.
-      </small>
-    </div>
+    <input
+      type="date"
+      formControlName="expirationDate"
+    />
 
-    <div style="display: grid; gap: 6px;">
-      <label>Storage location (optional)</label>
-      <select formControlName="storageLocation"
-              style="padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
-        <option value="fridge">Fridge</option>
-        <option value="freezer">Freezer</option>
-        <option value="pantry">Pantry</option>
-      </select>
-    </div>
+    <select formControlName="storageLocation">
+      <option value="fridge">Fridge</option>
+      <option value="freezer">Freezer</option>
+      <option value="pantry">Pantry</option>
+    </select>
 
-    <button type="submit"
-            style="padding: 10px; border: none; border-radius: 8px; cursor: pointer;">
-      Add item
-    </button>
-
-    <div *ngIf="error()" style="color: #b00020;">{{ error() }}</div>
+    <button type="submit">Add</button>
   </form>
 
-  <h3 style="margin: 16px 0 8px;">Your items (soonest first)</h3>
+  <hr />
 
-  <div *ngIf="items().length === 0" style="color: #666;">No items yet.</div>
-
-  <div *ngFor="let item of items()"
-       style="display:flex; justify-content: space-between; align-items: center;
-              padding: 10px 12px; border: 1px solid #eee; border-radius: 10px; margin-bottom: 8px;">
+  <div *ngFor="let item of items()" style="display:flex;justify-content:space-between;margin-bottom:8px;">
     <div>
-      <div style="font-weight: 600;">{{ item.name }}</div>
-      <div style="font-size: 13px; color: #666;">
-        Expires: {{ item.expirationDate }} • {{ item.storageLocation || '—' }}
-      </div>
+      <strong>{{ item.name }}</strong><br />
+      <small>{{ item.expirationDate }} · {{ item.storageLocation }}</small>
     </div>
 
-    <div style="display:flex; gap: 8px; align-items:center;">
-      <span [ngSwitch]="status(item)"
-            style="font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid #ccc;">
-        <span *ngSwitchCase="'expired'">Expired</span>
-        <span *ngSwitchCase="'use-soon'">Use soon</span>
-        <span *ngSwitchDefault>Fresh</span>
-      </span>
-
-      <button type="button" (click)="remove(item.id)"
-              style="padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer;">
-        Delete
-      </button>
+    <div>
+      <span>{{ status(item) }}</span>
+      <button (click)="delete(item.id)">✕</button>
     </div>
   </div>
+
+  <button (click)="clear()">Clear all</button>
 </div>
