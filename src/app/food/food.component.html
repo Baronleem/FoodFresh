@@ -1,0 +1,78 @@
+<div style="max-width:520px;margin:0 auto;padding:16px;font-family:system-ui;">
+
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h2 style="margin:0;">FoodFresh</h2>
+    <button type="button" (click)="clear()"
+            style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+      Clear all
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="add()"
+        style="display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+
+    <div style="display:grid;gap:6px;">
+      <label>Food name</label>
+      <input formControlName="name" placeholder="e.g., Milk"
+             style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+      <small *ngIf="form.controls.name.touched && form.controls.name.invalid" style="color:#b00020;">
+        Name is required (min 2 characters).
+      </small>
+    </div>
+
+    <div style="display:grid;gap:6px;">
+      <label>Expiration date</label>
+      <input type="date" formControlName="expirationDate"
+             style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+      <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid" style="color:#b00020;">
+        Expiration date is required.
+      </small>
+    </div>
+
+    <div style="display:grid;gap:6px;">
+      <label>Storage location</label>
+      <select formControlName="storageLocation"
+              style="padding:10px;border:1px solid #ccc;border-radius:8px;">
+        <option value="fridge">Fridge</option>
+        <option value="freezer">Freezer</option>
+        <option value="pantry">Pantry</option>
+      </select>
+    </div>
+
+    <button type="submit"
+            style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
+      Add item
+    </button>
+
+  </form>
+
+  <h3 style="margin:16px 0 8px;">Your items (soonest first)</h3>
+
+  <div *ngIf="items().length === 0" style="color:#666;">
+    No items yet.
+  </div>
+
+  <div *ngFor="let item of items()"
+       style="display:flex;justify-content:space-between;align-items:center;
+              padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+    <div>
+      <div style="font-weight:600;">{{ item.name }}</div>
+      <div style="font-size:13px;color:#666;">
+        Expires: {{ item.expirationDate }} • {{ item.storageLocation }}
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+        {{ status(item) }}
+      </span>
+
+      <button type="button" (click)="delete(item.id)"
+              style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+        Delete
+      </button>
+    </div>
+  </div>
+
+</div>
