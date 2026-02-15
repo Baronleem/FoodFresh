@@ -1,0 +1,7 @@
+[
+  { "id": 1, "name": "Milk", "expireDate": "2026-02-18", "price": 4.49, "quantity": 1, "location": "Fridge", "locatedFrom": "Grocery Store" },
+  { "id": 2, "name": "Eggs", "expireDate": "2026-02-22", "price": 3.99, "quantity": 1, "location": "Fridge", "locatedFrom": "Grocery Store" },
+  { "id": 3, "name": "Bread", "expireDate": "2026-02-17", "price": 2.79, "quantity": 1, "location": "Pantry", "locatedFrom": "Bakery" },
+  { "id": 4, "name": "Chicken Breast", "expireDate": "2026-02-16", "price": 8.99, "quantity": 2, "location": "Freezer", "locatedFrom": "Butcher" },
+  { "id": 5, "name": "Apples", "expireDate": "2026-02-28", "price": 4.25, "quantity": 4, "location": "Fruit Bowl", "locatedFrom": "Market" }
+]
