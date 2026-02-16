@@ -3,18 +3,18 @@
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h2 style="margin:0;">FoodFresh</h2>
     <button type="button" (click)="clear()"
-            style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+      style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
       Clear all
     </button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="add()"
-        style="display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+  <form [formGroup]="form" (ngSubmit)="editingId ? update() : add()"
+    style="display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
 
     <div style="display:grid;gap:6px;">
       <label>Food name</label>
       <input formControlName="name" placeholder="e.g., Milk"
-             style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
       <small *ngIf="form.controls.name.touched && form.controls.name.invalid" style="color:#b00020;">
         Name is required (min 2 characters).
       </small>
@@ -23,25 +23,29 @@
     <div style="display:grid;gap:6px;">
       <label>Expiration date</label>
       <input type="date" formControlName="expirationDate"
-             style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
-      <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid" style="color:#b00020;">
+        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+      <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid"
+        style="color:#b00020;">
         Expiration date is required.
       </small>
     </div>
 
     <div style="display:grid;gap:6px;">
       <label>Storage location</label>
-      <select formControlName="storageLocation"
-              style="padding:10px;border:1px solid #ccc;border-radius:8px;">
+      <select formControlName="storageLocation" style="padding:10px;border:1px solid #ccc;border-radius:8px;">
         <option value="fridge">Fridge</option>
         <option value="freezer">Freezer</option>
         <option value="pantry">Pantry</option>
       </select>
     </div>
 
-    <button type="submit"
-            style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
-      Add item
+    <button type="submit" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
+      {{ editingId ? 'Update item' : 'Add item' }}
+    </button>
+
+    <button *ngIf="editingId" type="button" (click)="editingId = null; form.reset({storageLocation: 'fridge'})"
+      style="background:none; border:none; color:#666; cursor:pointer; font-size:12px;">
+      Cancel Edit
     </button>
 
   </form>
@@ -52,8 +56,7 @@
     No items yet.
   </div>
 
-  <div *ngFor="let item of items()"
-       style="display:flex;justify-content:space-between;align-items:center;
+  <div *ngFor="let item of items()" style="display:flex;justify-content:space-between;align-items:center;
               padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
 
     <div>
@@ -67,9 +70,14 @@
       <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
         {{ status(item) }}
       </span>
+      <!--edit button-->
+      <button type="button" (click)="edit(item)"
+        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+        Edit
+      </button>
 
       <button type="button" (click)="delete(item.id)"
-              style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
         Delete
       </button>
     </div>

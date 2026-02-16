@@ -48,7 +48,7 @@ export class LocalFoodStoreService implements FoodStore {
   }
 
   remove(id: string): void {
-    const next = this.subject.value.filter(x => x.id !== id);
+    const next = this.subject.value.filter((x) => x.id !== id);
     this.subject.next(next);
     writeToStorage(next);
   }
@@ -56,6 +56,27 @@ export class LocalFoodStoreService implements FoodStore {
   clear(): void {
     this.subject.next([]);
     localStorage.removeItem(KEY);
+  }
+
+  edit(
+    id: string,
+    input: { name: string; expirationDate: string; storageLocation?: string },
+  ): void {
+    const next = this.sort(
+      this.subject.value.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              name: input.name.trim(),
+              expirationDate: input.expirationDate,
+              storageLocation: (input.storageLocation as StorageLocation) || item.storageLocation,
+            }
+          : item,
+      ),
+    );
+
+    this.subject.next(next);
+    writeToStorage(next);
   }
 
   private sort(items: FoodItem[]): FoodItem[] {

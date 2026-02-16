@@ -22,12 +22,14 @@ type Status = 'expired' | 'use-soon' | 'fresh';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './food.component.html',
 })
-
 export class FoodComponent {
   private fb = inject(FormBuilder);
 
   private readonly STORAGE_KEY = 'foodfresh_items_v1';
   private readonly useSoonDays = 3;
+
+  //Editing
+  editingId: string | null = null;
 
   private readonly itemsSubject = new BehaviorSubject<FoodItem[]>(this.readFromStorage());
   readonly items = toSignal(this.itemsSubject.asObservable(), { initialValue: [] as FoodItem[] });
@@ -35,7 +37,9 @@ export class FoodComponent {
   form = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
     expirationDate: ['', Validators.required],
-    storageLocation: this.fb.control<StorageLocation>('fridge', { validators: Validators.required }),
+    storageLocation: this.fb.control<StorageLocation>('fridge', {
+      validators: Validators.required,
+    }),
   });
 
   add(): void {
@@ -58,8 +62,41 @@ export class FoodComponent {
     this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge' });
   }
 
+  edit(item: FoodItem): void {
+    this.editingId = item.id;
+    this.form.setValue({
+      name: item.name,
+      expirationDate: item.expirationDate,
+      storageLocation: item.storageLocation,
+    });
+  }
+
+  update(): void {
+    if (!this.editingId) return;
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const updatedItem: FoodItem = {
+      id: this.editingId,
+      name: this.normalizeName(this.form.value.name!),
+      expirationDate: this.form.value.expirationDate!,
+      storageLocation: this.form.value.storageLocation!,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedList = this.items().map((i) => (i.id === this.editingId ? updatedItem : i));
+    this.saveItems(updatedList);
+
+    // Reset form and editing state
+    this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge' });
+    this.editingId = null;
+  }
+
   delete(id: string): void {
-    const updated = this.items().filter(i => i.id !== id);
+    const updated = this.items().filter((i) => i.id !== id);
     this.saveItems(updated);
   }
 
@@ -106,12 +143,12 @@ export class FoodComponent {
   }
 
   private normalizeName(input: string): string {
-  return input
-    .trim()
-    .replace(/\s+/g, ' ')
-    .toLowerCase()
-    .split(' ')
-    .map(w => (w ? w[0].toUpperCase() + w.slice(1) : ''))
-    .join(' ');
-}
+    return input
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      .split(' ')
+      .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ''))
+      .join(' ');
+  }
 }
