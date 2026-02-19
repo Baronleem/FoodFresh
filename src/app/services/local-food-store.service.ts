@@ -29,16 +29,29 @@ function writeToStorage(items: FoodItem[]): void {
 export class LocalFoodStoreService implements FoodStore {
   private readonly subject = new BehaviorSubject<FoodItem[]>(this.sort(readFromStorage()));
 
+  private readonly wasteSubject = new BehaviorSubject<{ name: string; price: number }[]>([]);
+  readonly wastedItems$ = this.wasteSubject.asObservable();
+
   list(): Observable<FoodItem[]> {
     return this.subject.asObservable();
   }
 
-  add(input: { name: string; expirationDate: string; storageLocation?: string }): void {
+  wasteList(): Observable<{ name: string; price: number }[]> {
+    return this.wasteSubject.asObservable();
+  }
+
+  add(input: {
+    name: string;
+    expirationDate: string;
+    storageLocation?: string;
+    price: number;
+  }): void {
     const item: FoodItem = {
       id: uuid(),
       name: input.name.trim(),
       expirationDate: input.expirationDate, // "YYYY-MM-DD"
       storageLocation: (input.storageLocation as StorageLocation) || undefined,
+      price: input.price,
       createdAt: new Date().toISOString(),
     };
 
@@ -51,6 +64,19 @@ export class LocalFoodStoreService implements FoodStore {
     const next = this.subject.value.filter((x) => x.id !== id);
     this.subject.next(next);
     writeToStorage(next);
+  }
+
+  waste(item: FoodItem): void {
+    const currentList = this.wasteSubject.value;
+
+    currentList.push({
+      name: item.name,
+      price: item.price,
+    });
+
+    this.wasteSubject.next(currentList);
+
+    this.remove(item.id);
   }
 
   clear(): void {

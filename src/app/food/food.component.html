@@ -39,6 +39,15 @@
       </select>
     </div>
 
+    <div style="display:grid;gap:6px;">
+      <label>Price ($)</label>
+      <input type="number" formControlName="price" placeholder="0.00" step="0.01"
+        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+      <small *ngIf="form.controls.price.touched && form.controls.price.invalid" style="color:#b00020;">
+        Valid price is required (min 0).
+      </small>
+    </div>
+
     <button type="submit" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
       {{ editingId ? 'Update item' : 'Add item' }}
     </button>
@@ -76,11 +85,42 @@
         Edit
       </button>
 
+      <button type="button" (click)="waste(item)"
+        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+        Waste
+      </button>
+
       <button type="button" (click)="delete(item.id)"
         style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
         Delete
       </button>
     </div>
   </div>
+  <div *ngIf="wastedItems.length > 0"
+    style="display:grid; gap:10px; margin-top:24px; padding:12px; border:1px solid #ddd; border-radius:10px; background-color:#fff;">
 
+    <div
+      style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px;">
+      <h3 style="margin:0; font-size:24px;">Waste Summary</h3>
+      <button type="button" (click)="clearWaste()"
+        style="padding:6px 10px; border:1px solid #ddd; border-radius:8px; cursor:pointer; background:white; font-size:12px;">
+        Clear Waste Bucket
+      </button>
+    </div>
+
+    <div style="display:grid; gap:4px;">
+      <div *ngFor="let w of wastedItems"
+        style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f9f9f9; font-size:14px;">
+        <span>{{ w.name }}</span>
+        <span style="color:#666;">{{ w.price | currency }}</span>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; margin-top:4px;">
+      <span style="font-weight:bold;">Total Money Lost</span>
+      <span style="font-size:15px; font-weight:bold; color:#b00020;">
+        {{ totalWasteCost | currency }}
+      </span>
+    </div>
+  </div>
 </div>

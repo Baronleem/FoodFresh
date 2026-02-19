@@ -12,6 +12,8 @@ interface FoodItem {
   expirationDate: string; // YYYY-MM-DD
   storageLocation: StorageLocation;
   createdAt: string;
+  //adding food item price for waste calculator
+  price: number;
 }
 
 type Status = 'expired' | 'use-soon' | 'fresh';
@@ -31,6 +33,10 @@ export class FoodComponent {
   //Editing
   editingId: string | null = null;
 
+  //Waste
+  wastedItems: { name: string; price: number }[] = [];
+  totalWasteCost: number = 0;
+
   private readonly itemsSubject = new BehaviorSubject<FoodItem[]>(this.readFromStorage());
   readonly items = toSignal(this.itemsSubject.asObservable(), { initialValue: [] as FoodItem[] });
 
@@ -40,6 +46,7 @@ export class FoodComponent {
     storageLocation: this.fb.control<StorageLocation>('fridge', {
       validators: Validators.required,
     }),
+    price: [0, [Validators.required, Validators.min(0)]],
   });
 
   add(): void {
@@ -53,13 +60,14 @@ export class FoodComponent {
       name: this.normalizeName(this.form.value.name!),
       expirationDate: this.form.value.expirationDate!,
       storageLocation: this.form.value.storageLocation!,
+      price: Number(this.form.value.price!),
       createdAt: new Date().toISOString(),
     };
 
     const updated = this.sortItems([item, ...this.items()]);
     this.saveItems(updated);
 
-    this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge' });
+    this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
   }
 
   edit(item: FoodItem): void {
@@ -68,6 +76,7 @@ export class FoodComponent {
       name: item.name,
       expirationDate: item.expirationDate,
       storageLocation: item.storageLocation,
+      price: item.price,
     });
   }
 
@@ -84,6 +93,7 @@ export class FoodComponent {
       name: this.normalizeName(this.form.value.name!),
       expirationDate: this.form.value.expirationDate!,
       storageLocation: this.form.value.storageLocation!,
+      price: Number(this.form.value.price!),
       createdAt: new Date().toISOString(),
     };
 
@@ -91,8 +101,20 @@ export class FoodComponent {
     this.saveItems(updatedList);
 
     // Reset form and editing state
-    this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge' });
+    this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
     this.editingId = null;
+  }
+  waste(item: FoodItem): void {
+    this.wastedItems.push({
+      name: item.name,
+      price: item.price,
+    });
+
+    // Total cost of waste
+    this.totalWasteCost += item.price;
+
+    // Use delete to remove from main list
+    this.delete(item.id);
   }
 
   delete(id: string): void {
@@ -102,6 +124,11 @@ export class FoodComponent {
 
   clear(): void {
     this.saveItems([]);
+  }
+
+  clearWaste(): void {
+    this.wastedItems = [];
+    this.totalWasteCost = 0;
   }
 
   status(item: FoodItem): Status {
