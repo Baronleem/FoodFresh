@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { FoodItem, StorageLocation } from '../models/food-item';
-import { FoodStore } from './food-store';
+import { FoodStore } from './food-store.service';
 
 const KEY = 'foodfresh_items_v1';
 
