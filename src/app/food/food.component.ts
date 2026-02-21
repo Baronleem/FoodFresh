@@ -14,6 +14,8 @@ interface FoodItem {
   createdAt: string;
   //adding food item price for waste calculator
   price: number;
+
+  opened?: boolean; // NEW
 }
 
 type Status = 'expired' | 'use-soon' | 'fresh';
@@ -56,13 +58,14 @@ export class FoodComponent {
     }
 
     const item: FoodItem = {
-      id: crypto.randomUUID(),
-      name: this.normalizeName(this.form.value.name!),
-      expirationDate: this.form.value.expirationDate!,
-      storageLocation: this.form.value.storageLocation!,
-      price: Number(this.form.value.price!),
-      createdAt: new Date().toISOString(),
-    };
+  id: crypto.randomUUID(),
+  name: this.normalizeName(this.form.value.name!),
+  expirationDate: this.form.value.expirationDate!,
+  storageLocation: this.form.value.storageLocation!,
+  price: Number(this.form.value.price!),
+  createdAt: new Date().toISOString(),
+  opened: false, // NEW
+};
 
     const updated = this.sortItems([item, ...this.items()]);
     this.saveItems(updated);
@@ -88,14 +91,16 @@ export class FoodComponent {
       return;
     }
 
-    const updatedItem: FoodItem = {
-      id: this.editingId,
-      name: this.normalizeName(this.form.value.name!),
-      expirationDate: this.form.value.expirationDate!,
-      storageLocation: this.form.value.storageLocation!,
-      price: Number(this.form.value.price!),
-      createdAt: new Date().toISOString(),
-    };
+    const old = this.items().find((i) => i.id === this.editingId);
+if (!old) return;
+
+const updatedItem: FoodItem = {
+  ...old,
+  name: this.normalizeName(this.form.value.name!),
+  expirationDate: this.form.value.expirationDate!,
+  storageLocation: this.form.value.storageLocation!,
+  price: Number(this.form.value.price!),
+};
 
     const updatedList = this.items().map((i) => (i.id === this.editingId ? updatedItem : i));
     this.saveItems(updatedList);
@@ -104,6 +109,12 @@ export class FoodComponent {
     this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
     this.editingId = null;
   }
+  toggleOpened(item: FoodItem): void {
+  const updatedList = this.items().map((i) =>
+    i.id === item.id ? { ...i, opened: !i.opened } : i
+  );
+  this.saveItems(updatedList);
+}
   waste(item: FoodItem): void {
     this.wastedItems.push({
       name: item.name,
@@ -145,7 +156,37 @@ export class FoodComponent {
     if (diffDays <= this.useSoonDays) return 'use-soon';
     return 'fresh';
   }
+expiredItems(): FoodItem[] {
+  return this.items().filter((i) => this.status(i) === 'expired');
+}
 
+useSoonItems(): FoodItem[] {
+  return this.items().filter((i) => this.status(i) === 'use-soon');
+}
+
+freshItems(): FoodItem[] {
+  return this.items().filter((i) => this.status(i) === 'fresh');
+}
+
+daysLeft(item: FoodItem): number {
+  const [y, m, d] = item.expirationDate.split('-').map(Number);
+  const exp = new Date(y, m - 1, d);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expDay = new Date(exp.getFullYear(), exp.getMonth(), exp.getDate());
+  const diff = expDay.getTime() - today.getTime();
+
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
+statusText(item: FoodItem): string {
+  const d = this.daysLeft(item);
+  if (d < 0) return `Expired ${Math.abs(d)} day(s) ago`;
+  if (d === 0) return 'Expires today';
+  return `${d} day(s) left`;
+}
   // ---------- helpers ----------
 
   private readFromStorage(): FoodItem[] {
@@ -153,7 +194,11 @@ export class FoodComponent {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (!raw) return [];
       const parsed = JSON.parse(raw) as FoodItem[];
-      return this.sortItems(Array.isArray(parsed) ? parsed : []);
+
+const arr = Array.isArray(parsed) ? parsed : [];
+const fixed = arr.map((i) => ({ opened: false, ...i }));
+
+return this.sortItems(fixed);
     } catch {
       return [];
     }
