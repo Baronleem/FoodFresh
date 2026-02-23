@@ -59,41 +59,147 @@
 
   </form>
 
-  <h3 style="margin:16px 0 8px;">Your items (soonest first)</h3>
+  <h3 style="margin:16px 0 8px;">Your items</h3>
 
   <div *ngIf="items().length === 0" style="color:#666;">
     No items yet.
   </div>
 
-  <div *ngFor="let item of items()" style="display:flex;justify-content:space-between;align-items:center;
-              padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+    <!-- EXPIRED -->
+  <div *ngIf="expiredItems().length > 0" style="margin-top:12px;">
+    <h4 style="margin:10px 0;color:#b00020;">Expired</h4>
 
-    <div>
-      <div style="font-weight:600;">{{ item.name }}</div>
-      <div style="font-size:13px;color:#666;">
-        Expires: {{ item.expirationDate }} • {{ item.storageLocation }}
+    <div *ngFor="let item of expiredItems()"
+      [style.opacity]="item.opened ? 0.65 : 1"
+      style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+      <div>
+        <div style="font-weight:600;">
+          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+        </div>
+        <div style="font-size:13px;color:#666;">
+          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+          {{ status(item) }}
+        </span>
+
+        <button type="button" (click)="toggleOpened(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+        </button>
+
+        <button type="button" (click)="edit(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Edit
+        </button>
+
+        <button type="button" (click)="waste(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+          Waste
+        </button>
+
+        <button type="button" (click)="delete(item.id)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Delete
+        </button>
       </div>
     </div>
+  </div>
 
-    <div style="display:flex;align-items:center;gap:10px;">
-      <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
-        {{ status(item) }}
-      </span>
-      <!--edit button-->
-      <button type="button" (click)="edit(item)"
-        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-        Edit
-      </button>
+  <!-- EXPIRING SOON -->
+  <div *ngIf="useSoonItems().length > 0" style="margin-top:12px;">
+    <h4 style="margin:10px 0;color:#b26a00;">Expiring Soon</h4>
 
-      <button type="button" (click)="waste(item)"
-        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
-        Waste
-      </button>
+    <div *ngFor="let item of useSoonItems()"
+      [style.opacity]="item.opened ? 0.65 : 1"
+      style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
 
-      <button type="button" (click)="delete(item.id)"
-        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-        Delete
-      </button>
+      <div>
+        <div style="font-weight:600;">
+          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+        </div>
+        <div style="font-size:13px;color:#666;">
+          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+          {{ status(item) }}
+        </span>
+
+        <button type="button" (click)="toggleOpened(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+        </button>
+
+        <button type="button" (click)="edit(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Edit
+        </button>
+
+        <button type="button" (click)="waste(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+          Waste
+        </button>
+
+        <button type="button" (click)="delete(item.id)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRESH -->
+  <div *ngIf="freshItems().length > 0" style="margin-top:12px;">
+    <h4 style="margin:10px 0;color:#0a7a2f;">Fresh</h4>
+
+    <div *ngFor="let item of freshItems()"
+      [style.opacity]="item.opened ? 0.65 : 1"
+      style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+      <div>
+        <div style="font-weight:600;">
+          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+        </div>
+        <div style="font-size:13px;color:#666;">
+          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+          {{ status(item) }}
+        </span>
+
+        <button type="button" (click)="toggleOpened(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+        </button>
+
+        <button type="button" (click)="edit(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Edit
+        </button>
+
+        <button type="button" (click)="waste(item)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+          Waste
+        </button>
+
+        <button type="button" (click)="delete(item.id)"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Delete
+        </button>
+      </div>
     </div>
   </div>
   <div *ngIf="wastedItems.length > 0"
