@@ -58,7 +58,85 @@
     </button>
 
   </form>
+<!-- STORAGE SECTION -->
+<div style="margin-top:16px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+  <h3 style="margin:0 0 8px;">Storage</h3>
 
+  <div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+      Fridge: <b>{{ storageCount('fridge') }}</b>
+    </div>
+    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+      Freezer: <b>{{ storageCount('freezer') }}</b>
+    </div>
+    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+      Pantry: <b>{{ storageCount('pantry') }}</b>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR SECTION -->
+<div style="margin-top:16px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+  <h3 style="margin:0 0 8px;">Calendar</h3>
+
+  <div style="display:flex;gap:10px;align-items:center;">
+    <label>Pick a date:</label>
+    <input type="date" [(ngModel)]="calendarDate" name="calendarDate" [ngModelOptions]="{standalone: true}"
+      style="padding:8px;border:1px solid #ccc;border-radius:8px;" />
+  </div>
+
+  <div *ngIf="calendarDate && itemsForDate(calendarDate).length === 0"
+       style="margin-top:8px;color:#666;">
+    No items expiring on that date.
+  </div>
+
+  <div *ngIf="calendarDate && itemsForDate(calendarDate).length > 0"
+       style="margin-top:10px;">
+
+    <div *ngFor="let item of itemsForDate(calendarDate)"
+      style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+      <div>
+        <div style="font-weight:600;">{{ item.name }}</div>
+        <div style="font-size:13px;color:#666;">
+          {{ item.storageLocation }} • {{ statusText(item) }}
+        </div>
+      </div>
+
+      <button type="button" (click)="edit(item)"
+        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;">
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">
+      Next 7 days:
+    </div>
+
+    <div *ngIf="next7Days().length === 0" style="color:#666;">
+      Nothing expiring in next 7 days.
+    </div>
+
+    <div *ngFor="let item of next7Days()"
+      style="display:flex;justify-content:space-between;align-items:center;
+      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+      <div>
+        <div style="font-weight:600;">{{ item.name }}</div>
+        <div style="font-size:13px;color:#666;">
+          Expires: {{ item.expirationDate }} • {{ item.storageLocation }}
+        </div>
+      </div>
+
+      <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+        {{ status(item) }}
+      </span>
+    </div>
+  </div>
+</div>
   <h3 style="margin:16px 0 8px;">Your items</h3>
 
   <div *ngIf="items().length === 0" style="color:#666;">
