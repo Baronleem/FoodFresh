@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
 
@@ -23,7 +23,7 @@ type Status = 'expired' | 'use-soon' | 'fresh';
 @Component({
   selector: 'app-food',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './food.component.html',
 })
 export class FoodComponent {
@@ -31,6 +31,7 @@ export class FoodComponent {
 
   private readonly STORAGE_KEY = 'foodfresh_items_v1';
   private readonly useSoonDays = 3;
+  calendarDate: string = '';
 
   //Editing
   editingId: string | null = null;
@@ -186,6 +187,32 @@ statusText(item: FoodItem): string {
   if (d < 0) return `Expired ${Math.abs(d)} day(s) ago`;
   if (d === 0) return 'Expires today';
   return `${d} day(s) left`;
+}
+  // -------- organized interface extra sections --------
+
+// storage summary counts
+storageCount(loc: StorageLocation): number {
+  return this.items().filter((i) => i.storageLocation === loc).length;
+}
+
+// calendar: get items expiring on a specific date
+itemsForDate(dateStr: string): FoodItem[] {
+  if (!dateStr) return [];
+  return this.items().filter((i) => i.expirationDate === dateStr);
+}
+
+// quick list for "next 7 days"
+next7Days(): FoodItem[] {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  return this.items().filter((i) => {
+    const [y,m,d] = i.expirationDate.split('-').map(Number);
+    const exp = new Date(y, m - 1, d);
+    exp.setHours(0,0,0,0);
+    const diff = Math.floor((exp.getTime() - today.getTime()) / (1000*60*60*24));
+    return diff >= 0 && diff <= 7;
+  });
 }
   // ---------- helpers ----------
 
