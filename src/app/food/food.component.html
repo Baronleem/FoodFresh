@@ -1,310 +1,463 @@
 <div style="max-width:520px;margin:0 auto;padding:16px;font-family:system-ui;">
 
+  <!-- Header -->
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <h2 style="margin:0;">FoodFresh</h2>
-    <button type="button" (click)="clear()"
-      style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-      Clear all
+  </div>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+    <button type="button" (click)="setTab('food')"
+      [style.fontWeight]="activeTab() === 'food' ? '700' : '400'"
+      style="padding:8px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:white;">
+      Food
+    </button>
+
+    <button type="button" (click)="setTab('calendar')"
+      [style.fontWeight]="activeTab() === 'calendar' ? '700' : '400'"
+      style="padding:8px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:white;">
+      Calendar
+    </button>
+
+    <button type="button" (click)="setTab('storage')"
+      [style.fontWeight]="activeTab() === 'storage' ? '700' : '400'"
+      style="padding:8px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:white;">
+      Storage
+    </button>
+
+    <button type="button" (click)="setTab('tips')"
+      [style.fontWeight]="activeTab() === 'tips' ? '700' : '400'"
+      style="padding:8px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:white;">
+      Tips
+    </button>
+
+    <button type="button" (click)="setTab('waste')"
+      [style.fontWeight]="activeTab() === 'waste' ? '700' : '400'"
+      style="padding:8px 10px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:white;">
+      Waste
     </button>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="editingId ? update() : add()"
-    style="display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+  <!-- ============ TAB: FOOD ============ -->
+  <div *ngIf="activeTab() === 'food'">
 
-    <div style="display:grid;gap:6px;">
-      <label>Food name</label>
-      <input formControlName="name" placeholder="e.g., Milk"
-        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
-      <small *ngIf="form.controls.name.touched && form.controls.name.invalid" style="color:#b00020;">
-        Name is required (min 2 characters).
-      </small>
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="editingId ? update() : add()"
+      style="display:grid;gap:10px;margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+
+      <div style="display:grid;gap:6px;">
+        <label>Food name</label>
+        <input formControlName="name" placeholder="e.g., Milk"
+          style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+        <small *ngIf="form.controls.name.touched && form.controls.name.invalid" style="color:#b00020;">
+          Name is required (min 2 characters).
+        </small>
+      </div>
+
+      <div style="display:grid;gap:6px;">
+        <label>Expiration date</label>
+        <input type="date" formControlName="expirationDate"
+          style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+        <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid"
+          style="color:#b00020;">
+          Expiration date is required.
+        </small>
+      </div>
+
+      <div style="display:grid;gap:6px;">
+        <label>Storage location</label>
+        <select formControlName="storageLocation"
+          style="padding:10px;border:1px solid #ccc;border-radius:8px;">
+          <option value="fridge">Fridge</option>
+          <option value="freezer">Freezer</option>
+          <option value="pantry">Pantry</option>
+        </select>
+      </div>
+
+      <div style="display:grid;gap:6px;">
+        <label>Price ($)</label>
+        <input type="number" formControlName="price" placeholder="0.00" step="0.01"
+          style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
+        <small *ngIf="form.controls.price.touched && form.controls.price.invalid" style="color:#b00020;">
+          Valid price is required (min 0).
+        </small>
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="submit" [disabled]="form.invalid"
+          style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
+          {{ editingId ? 'Update item' : 'Add item' }}
+        </button>
+
+        <button *ngIf="editingId" type="button" (click)="cancelEdit()"
+          style="background:none; border:none; color:#666; cursor:pointer; font-size:12px;">
+          Cancel Edit
+        </button>
+      </div>
+    </form>
+
+    <!-- Clear all under form -->
+    <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+      <button type="button" (click)="clear()"
+        [disabled]="items().length === 0"
+        style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:white;">
+        Clear All Items
+      </button>
     </div>
 
-    <div style="display:grid;gap:6px;">
-      <label>Expiration date</label>
-      <input type="date" formControlName="expirationDate"
-        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
-      <small *ngIf="form.controls.expirationDate.touched && form.controls.expirationDate.invalid"
-        style="color:#b00020;">
-        Expiration date is required.
-      </small>
+    <!-- Search -->
+    <div style="margin-top:12px;">
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        name="searchTerm"
+        [ngModelOptions]="{standalone:true}"
+        placeholder="Search items (e.g., milk, chicken)…"
+        style="width:100%;padding:10px;border:1px solid #ccc;border-radius:10px;"
+      />
     </div>
 
-    <div style="display:grid;gap:6px;">
-      <label>Storage location</label>
-      <select formControlName="storageLocation" style="padding:10px;border:1px solid #ccc;border-radius:8px;">
+    <h3 style="margin:16px 0 8px;">Your items</h3>
+
+    <div *ngIf="items().length > 0
+                && expiredItems().length === 0
+                && useSoonItems().length === 0
+                && freshItems().length === 0"
+         style="color:#666;margin-top:8px;">
+      No items match “{{ searchTerm }}”.
+    </div>
+
+    <div *ngIf="items().length === 0" style="color:#666;">
+      No items yet.
+    </div>
+
+    <!-- EXPIRED -->
+    <div *ngIf="expiredItems().length > 0" style="margin-top:12px;">
+      <h4 style="margin:10px 0;color:#b00020;">Expired</h4>
+
+      <div *ngFor="let item of expiredItems()"
+        [style.opacity]="item.opened ? 0.65 : 1"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+        <div>
+          <div style="font-weight:600;">
+            {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+          </div>
+          <div style="font-size:13px;color:#666;">
+            Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ item.price | currency }} • {{ statusText(item) }}
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+            {{ status(item) }}
+          </span>
+
+          <button type="button" (click)="toggleOpened(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+          </button>
+
+          <button type="button" (click)="edit(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Edit
+          </button>
+
+          <button type="button" (click)="waste(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+            Waste
+          </button>
+
+          <button type="button" (click)="delete(item.id)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPIRING SOON -->
+    <div *ngIf="useSoonItems().length > 0" style="margin-top:12px;">
+      <h4 style="margin:10px 0;color:#b26a00;">Expiring Soon</h4>
+
+      <div *ngFor="let item of useSoonItems()"
+        [style.opacity]="item.opened ? 0.65 : 1"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+        <div>
+          <div style="font-weight:600;">
+            {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+          </div>
+          <div style="font-size:13px;color:#666;">
+            Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ item.price | currency }} • {{ statusText(item) }}
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+            {{ status(item) }}
+          </span>
+
+          <button type="button" (click)="toggleOpened(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+          </button>
+
+          <button type="button" (click)="edit(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Edit
+          </button>
+
+          <button type="button" (click)="waste(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+            Waste
+          </button>
+
+          <button type="button" (click)="delete(item.id)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRESH -->
+    <div *ngIf="freshItems().length > 0" style="margin-top:12px;">
+      <h4 style="margin:10px 0;color:#0a7a2f;">Fresh</h4>
+
+      <div *ngFor="let item of freshItems()"
+        [style.opacity]="item.opened ? 0.65 : 1"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+        <div>
+          <div style="font-weight:600;">
+            {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
+          </div>
+          <div style="font-size:13px;color:#666;">
+            Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ item.price | currency }} • {{ statusText(item) }}
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+          <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+            {{ status(item) }}
+          </span>
+
+          <button type="button" (click)="toggleOpened(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
+          </button>
+
+          <button type="button" (click)="edit(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Edit
+          </button>
+
+          <button type="button" (click)="waste(item)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
+            Waste
+          </button>
+
+          <button type="button" (click)="delete(item.id)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: CALENDAR ============ -->
+  <div *ngIf="activeTab() === 'calendar'"
+    style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+
+    <h3 style="margin:0 0 8px;">Calendar</h3>
+
+    <div style="display:flex;gap:10px;align-items:center;">
+      <label>Pick a date:</label>
+      <input type="date" [(ngModel)]="calendarDate" name="calendarDate" [ngModelOptions]="{standalone: true}"
+        style="padding:8px;border:1px solid #ccc;border-radius:8px;" />
+    </div>
+
+    <div *ngIf="calendarDate && itemsForDate(calendarDate).length === 0"
+         style="margin-top:8px;color:#666;">
+      No items expiring on that date.
+    </div>
+
+    <div *ngIf="calendarDate && itemsForDate(calendarDate).length > 0"
+         style="margin-top:10px;">
+      <div *ngFor="let item of itemsForDate(calendarDate)"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+        <div>
+          <div style="font-weight:600;">{{ item.name }}</div>
+          <div style="font-size:13px;color:#666;">
+            {{ item.storageLocation }} • {{ item.price | currency }} • {{ statusText(item) }}
+          </div>
+        </div>
+
+        <button type="button" (click)="edit(item); setTab('food')"
+          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div style="font-size:13px;color:#666;margin-bottom:6px;">
+        Next 7 days:
+      </div>
+
+      <div *ngIf="next7Days().length === 0" style="color:#666;">
+        Nothing expiring in next 7 days.
+      </div>
+
+      <div *ngFor="let item of next7Days()"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+
+        <div>
+          <div style="font-weight:600;">{{ item.name }}</div>
+          <div style="font-size:13px;color:#666;">
+            Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ item.price | currency }}
+          </div>
+        </div>
+
+        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
+          {{ status(item) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAB: STORAGE ============ -->
+  <div *ngIf="activeTab() === 'storage'"
+    style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
+
+    <h3 style="margin:0 0 8px;">Storage</h3>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+        Fridge: <b>{{ storageCount('fridge') }}</b>
+      </div>
+      <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+        Freezer: <b>{{ storageCount('freezer') }}</b>
+      </div>
+      <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
+        Pantry: <b>{{ storageCount('pantry') }}</b>
+      </div>
+    </div>
+
+    <!-- Filter dropdown -->
+    <div style="margin-top:12px;display:flex;gap:10px;align-items:center;">
+      <label>Show:</label>
+      <select
+        [(ngModel)]="storageFilter"
+        name="storageFilter"
+        [ngModelOptions]="{standalone:true}"
+        style="padding:8px;border:1px solid #ccc;border-radius:8px;"
+      >
+        <option value="all">All</option>
         <option value="fridge">Fridge</option>
         <option value="freezer">Freezer</option>
         <option value="pantry">Pantry</option>
       </select>
     </div>
 
-    <div style="display:grid;gap:6px;">
-      <label>Price ($)</label>
-      <input type="number" formControlName="price" placeholder="0.00" step="0.01"
-        style="padding:10px;border:1px solid #ccc;border-radius:8px;" />
-      <small *ngIf="form.controls.price.touched && form.controls.price.invalid" style="color:#b00020;">
-        Valid price is required (min 0).
-      </small>
-    </div>
+    <!-- Filtered list -->
+    <div style="margin-top:12px;">
+      <div *ngIf="filteredByStorage().length === 0" style="color:#666;">
+        No items in this location.
+      </div>
 
-    <button type="submit" style="padding:10px;border:none;border-radius:8px;cursor:pointer;">
-      {{ editingId ? 'Update item' : 'Add item' }}
-    </button>
+      <div *ngFor="let item of filteredByStorage()"
+        style="display:flex;justify-content:space-between;align-items:center;
+        padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
 
-    <button *ngIf="editingId" type="button" (click)="editingId = null; form.reset({storageLocation: 'fridge'})"
-      style="background:none; border:none; color:#666; cursor:pointer; font-size:12px;">
-      Cancel Edit
-    </button>
+        <div>
+          <div style="font-weight:600;">{{ item.name }}</div>
+          <div style="font-size:13px;color:#666;">
+            Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ item.price | currency }} • {{ statusText(item) }}
+          </div>
+        </div>
 
-  </form>
-<!-- STORAGE SECTION -->
-<div style="margin-top:16px;padding:12px;border:1px solid #ddd;border-radius:10px;">
-  <h3 style="margin:0 0 8px;">Storage</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+          <button type="button" (click)="edit(item); setTab('food')"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Edit
+          </button>
 
-  <div style="display:flex;gap:10px;flex-wrap:wrap;">
-    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
-      Fridge: <b>{{ storageCount('fridge') }}</b>
-    </div>
-    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
-      Freezer: <b>{{ storageCount('freezer') }}</b>
-    </div>
-    <div style="padding:8px 10px;border:1px solid #eee;border-radius:10px;">
-      Pantry: <b>{{ storageCount('pantry') }}</b>
+          <button type="button" (click)="delete(item.id)"
+            style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
+            Delete
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- CALENDAR SECTION -->
-<div style="margin-top:16px;padding:12px;border:1px solid #ddd;border-radius:10px;">
-  <h3 style="margin:0 0 8px;">Calendar</h3>
+  <!-- ============ TAB: TIPS ============ -->
+  <div *ngIf="activeTab() === 'tips'"
+    style="margin-top:12px;padding:12px;border:1px solid #ddd;border-radius:10px;">
 
-  <div style="display:flex;gap:10px;align-items:center;">
-    <label>Pick a date:</label>
-    <input type="date" [(ngModel)]="calendarDate" name="calendarDate" [ngModelOptions]="{standalone: true}"
-      style="padding:8px;border:1px solid #ccc;border-radius:8px;" />
+    <h3 style="margin:0 0 8px;">Tips</h3>
+
+    <div style="display:grid;gap:8px;color:#333;">
+      <div style="padding:10px;border:1px solid #eee;border-radius:10px;">
+        <b>Use First</b><br />
+        Put items expiring soon in front. Cook meals that use those ingredients first.
+      </div>
+
+      <div style="padding:10px;border:1px solid #eee;border-radius:10px;">
+        <b>Label & Date</b><br />
+        For leftovers and freezer bags, write the date so you know what to use next.
+      </div>
+
+      <div style="padding:10px;border:1px solid #eee;border-radius:10px;">
+        <b>Fridge Zones</b><br />
+        Keep raw meat low, ready-to-eat foods higher to reduce cross-contamination.
+      </div>
+    </div>
   </div>
 
-  <div *ngIf="calendarDate && itemsForDate(calendarDate).length === 0"
-       style="margin-top:8px;color:#666;">
-    No items expiring on that date.
-  </div>
+  <!-- ============ TAB: WASTE ============ -->
+  <div *ngIf="activeTab() === 'waste'" style="margin-top:12px;">
 
-  <div *ngIf="calendarDate && itemsForDate(calendarDate).length > 0"
-       style="margin-top:10px;">
+    <div *ngIf="wastedItems.length === 0"
+      style="padding:12px;border:1px solid #ddd;border-radius:10px;color:#666;">
+      No wasted items yet.
+    </div>
 
-    <div *ngFor="let item of itemsForDate(calendarDate)"
-      style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
+    <div *ngIf="wastedItems.length > 0"
+      style="display:grid; gap:10px; padding:12px; border:1px solid #ddd; border-radius:10px; background-color:#fff;">
 
-      <div>
-        <div style="font-weight:600;">{{ item.name }}</div>
-        <div style="font-size:13px;color:#666;">
-          {{ item.storageLocation }} • {{ statusText(item) }}
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px;">
+        <h3 style="margin:0; font-size:24px;">Waste Summary</h3>
+        <button type="button" (click)="clearWaste()"
+          style="padding:6px 10px; border:1px solid #ddd; border-radius:8px; cursor:pointer; background:white; font-size:12px;">
+          Clear Waste Bucket
+        </button>
+      </div>
+
+      <div style="display:grid; gap:4px;">
+        <div *ngFor="let w of wastedItems"
+          style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f9f9f9; font-size:14px;">
+          <span>{{ w.name }}</span>
+          <span style="color:#666;">{{ w.price | currency }}</span>
         </div>
       </div>
 
-      <button type="button" (click)="edit(item)"
-        style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-        Edit
-      </button>
-    </div>
-  </div>
-
-  <div style="margin-top:14px;">
-    <div style="font-size:13px;color:#666;margin-bottom:6px;">
-      Next 7 days:
-    </div>
-
-    <div *ngIf="next7Days().length === 0" style="color:#666;">
-      Nothing expiring in next 7 days.
-    </div>
-
-    <div *ngFor="let item of next7Days()"
-      style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
-
-      <div>
-        <div style="font-weight:600;">{{ item.name }}</div>
-        <div style="font-size:13px;color:#666;">
-          Expires: {{ item.expirationDate }} • {{ item.storageLocation }}
-        </div>
-      </div>
-
-      <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
-        {{ status(item) }}
-      </span>
-    </div>
-  </div>
-</div>
-  <h3 style="margin:16px 0 8px;">Your items</h3>
-
-  <div *ngIf="items().length === 0" style="color:#666;">
-    No items yet.
-  </div>
-
-    <!-- EXPIRED -->
-  <div *ngIf="expiredItems().length > 0" style="margin-top:12px;">
-    <h4 style="margin:10px 0;color:#b00020;">Expired</h4>
-
-    <div *ngFor="let item of expiredItems()"
-      [style.opacity]="item.opened ? 0.65 : 1"
-      style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
-
-      <div>
-        <div style="font-weight:600;">
-          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
-        </div>
-        <div style="font-size:13px;color:#666;">
-          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
-          {{ status(item) }}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; margin-top:4px;">
+        <span style="font-weight:bold;">Total Money Lost</span>
+        <span style="font-size:15px; font-weight:bold; color:#b00020;">
+          {{ totalWasteCost | currency }}
         </span>
-
-        <button type="button" (click)="toggleOpened(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
-        </button>
-
-        <button type="button" (click)="edit(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Edit
-        </button>
-
-        <button type="button" (click)="waste(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
-          Waste
-        </button>
-
-        <button type="button" (click)="delete(item.id)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Delete
-        </button>
       </div>
     </div>
   </div>
 
-  <!-- EXPIRING SOON -->
-  <div *ngIf="useSoonItems().length > 0" style="margin-top:12px;">
-    <h4 style="margin:10px 0;color:#b26a00;">Expiring Soon</h4>
-
-    <div *ngFor="let item of useSoonItems()"
-      [style.opacity]="item.opened ? 0.65 : 1"
-      style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
-
-      <div>
-        <div style="font-weight:600;">
-          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
-        </div>
-        <div style="font-size:13px;color:#666;">
-          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
-          {{ status(item) }}
-        </span>
-
-        <button type="button" (click)="toggleOpened(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
-        </button>
-
-        <button type="button" (click)="edit(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Edit
-        </button>
-
-        <button type="button" (click)="waste(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
-          Waste
-        </button>
-
-        <button type="button" (click)="delete(item.id)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- FRESH -->
-  <div *ngIf="freshItems().length > 0" style="margin-top:12px;">
-    <h4 style="margin:10px 0;color:#0a7a2f;">Fresh</h4>
-
-    <div *ngFor="let item of freshItems()"
-      [style.opacity]="item.opened ? 0.65 : 1"
-      style="display:flex;justify-content:space-between;align-items:center;
-      padding:10px 12px;border:1px solid #eee;border-radius:10px;margin-bottom:8px;">
-
-      <div>
-        <div style="font-weight:600;">
-          {{ item.name }} <span *ngIf="item.opened" style="font-size:12px;color:#666;">(opened)</span>
-        </div>
-        <div style="font-size:13px;color:#666;">
-          Expires: {{ item.expirationDate }} • {{ item.storageLocation }} • {{ statusText(item) }}
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-        <span style="font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid #ccc;">
-          {{ status(item) }}
-        </span>
-
-        <button type="button" (click)="toggleOpened(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          {{ item.opened ? 'Mark Closed' : 'Mark Opened' }}
-        </button>
-
-        <button type="button" (click)="edit(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Edit
-        </button>
-
-        <button type="button" (click)="waste(item)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;background:#fcfcfc;">
-          Waste
-        </button>
-
-        <button type="button" (click)="delete(item.id)"
-          style="padding:8px 10px;border:1px solid #ddd;border-radius:8px;cursor:pointer;">
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-  <div *ngIf="wastedItems.length > 0"
-    style="display:grid; gap:10px; margin-top:24px; padding:12px; border:1px solid #ddd; border-radius:10px; background-color:#fff;">
-
-    <div
-      style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:8px;">
-      <h3 style="margin:0; font-size:24px;">Waste Summary</h3>
-      <button type="button" (click)="clearWaste()"
-        style="padding:6px 10px; border:1px solid #ddd; border-radius:8px; cursor:pointer; background:white; font-size:12px;">
-        Clear Waste Bucket
-      </button>
-    </div>
-
-    <div style="display:grid; gap:4px;">
-      <div *ngFor="let w of wastedItems"
-        style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #f9f9f9; font-size:14px;">
-        <span>{{ w.name }}</span>
-        <span style="color:#666;">{{ w.price | currency }}</span>
-      </div>
-    </div>
-
-    <div style="display:flex; justify-content:space-between; align-items:center; padding-top:8px; margin-top:4px;">
-      <span style="font-weight:bold;">Total Money Lost</span>
-      <span style="font-size:15px; font-weight:bold; color:#b00020;">
-        {{ totalWasteCost | currency }}
-      </span>
-    </div>
-  </div>
 </div>
