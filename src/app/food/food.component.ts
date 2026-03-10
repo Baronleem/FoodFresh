@@ -23,7 +23,9 @@ type Status = 'expired' | 'use-soon' | 'fresh';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './food.component.html',
+  styleUrls: ['./food.component.css']
 })
+
 export class FoodComponent {
   private fb = inject(FormBuilder);
 
@@ -136,6 +138,34 @@ export class FoodComponent {
       this.items().map((i) => (i.id === item.id ? { ...i, opened: !i.opened } : i))
     );
   }
+
+  /*---------------- STORAGE TIPS ---------------- */
+
+  storageTips = {
+  fridge: [
+    'Milk and dairy products',
+    'Cooked leftovers',
+    'Fresh vegetables and fruits',
+    'Eggs and butter',
+    'Opened sauces and condiments'
+  ],
+
+  freezer: [
+    'Frozen vegetables',
+    'Frozen meat and fish',
+    'Ice cream',
+    'Bread for long storage',
+    'Prepared meals for later use'
+  ],
+
+  pantry: [
+    'Dry pasta and rice',
+    'Canned foods',
+    'Flour and baking ingredients',
+    'Cooking oils',
+    'Unopened sauces and spices'
+  ]
+};
 
   /* ---------------- WASTE ---------------- */
 
