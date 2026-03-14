@@ -19,6 +19,14 @@ interface FoodItem {
   daysRemainingWhenFrozen?: number;
 }
 
+//History
+interface HistoryItem {
+  id: string;
+  name: string;
+  price: number;
+  purchaseDate: string;
+}
+
 type Status = 'expired' | 'use-soon' | 'fresh';
 
 @Component({
@@ -36,8 +44,8 @@ export class FoodComponent {
   private readonly useSoonDays = 3;
 
   // Tabs
-  activeTab = signal<'food' | 'calendar' | 'storage' | 'tips' | 'waste'>('food');
-  setTab(tab: 'food' | 'calendar' | 'storage' | 'tips' | 'waste') {
+  activeTab = signal<'food' | 'calendar' | 'storage' | 'tips' | 'waste' | 'history'>('food');
+  setTab(tab: 'food' | 'calendar' | 'storage' | 'tips' | 'waste' | 'history') {
     this.activeTab.set(tab);
   }
 
@@ -50,7 +58,11 @@ export class FoodComponent {
   storageFilter: StorageLocation | 'all' = 'all';
 
   // Waste
-  wastedItems: { name: string; price: number }[] = [];
+  wastedItems: { name: string; price: number }[] = JSON.parse(localStorage.getItem('foodfresh_waste') || '[]');
+  eatenItems: any[] = JSON.parse(localStorage.getItem('foodfresh_eaten') || '[]');
+
+  //History
+  historyItems: HistoryItem[] = JSON.parse(localStorage.getItem('foodfresh_history') || '[]');
 
   private readonly itemsSubject = new BehaviorSubject<FoodItem[]>(this.readFromStorage());
   readonly items = toSignal(this.itemsSubject.asObservable(), { initialValue: [] as FoodItem[] });
@@ -83,6 +95,17 @@ export class FoodComponent {
       createdAt: new Date().toISOString(),
       opened: false,
     };
+
+    //History
+    const historyEntry: HistoryItem = {
+      id: item.id,
+      name: item.name,
+      price: item.price,
+      purchaseDate: new Date().toISOString().split('T')[0],
+    };
+
+    this.historyItems = [historyEntry, ...this.historyItems];
+    this.saveHistory();
 
     this.saveItems([item, ...this.items()]);
     this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
@@ -139,6 +162,20 @@ export class FoodComponent {
     this.saveItems(this.items().map((i) => (i.id === item.id ? { ...i, opened: !i.opened } : i)));
   }
 
+  /* ---------------- HISTORY ---------------- */
+  private saveHistory(): void {
+    localStorage.setItem('foodfresh_history', JSON.stringify(this.historyItems));
+  }
+  deleteHistoryItem(id: string): void {
+    this.historyItems = this.historyItems.filter((item) => item.id !== id);
+    this.saveHistory();
+  }
+  clearHistory(): void {
+    this.historyItems = [];
+    this.saveHistory();
+  }
+
+
   /*---------------- STORAGE TIPS ---------------- */
 
   storageTips = {
@@ -168,8 +205,10 @@ export class FoodComponent {
   };
 
   /* ---------------- WASTE ---------------- */
-
-  eatenItems: any[] = [];
+  private saveStats(): void {
+  localStorage.setItem('foodfresh_waste', JSON.stringify(this.wastedItems));
+  localStorage.setItem('foodfresh_eaten', JSON.stringify(this.eatenItems));
+}
   get foodScore() {
     const eatenCount = this.eatenItems.length;
     const wastedCount = this.wastedItems.length;
@@ -192,20 +231,24 @@ export class FoodComponent {
 
   waste(item: FoodItem): void {
     this.wastedItems.push({ name: item.name, price: item.price });
+    this.saveStats();
     this.delete(item.id);
   }
 
   eaten(item: FoodItem): void {
     this.eatenItems.push(item);
+    this.saveStats();
     this.delete(item.id);
   }
 
   clearWaste(): void {
     this.wastedItems = [];
+    this.saveStats();
   }
   clearEaten(): void {
-  this.eatenItems = [];
-}
+    this.eatenItems = [];
+    this.saveStats();
+  }
   /* -------------- FROZEN TOGGLE ---------------- */
   toggleFrozen(item: FoodItem): void {
     const today = new Date();

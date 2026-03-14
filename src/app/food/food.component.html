@@ -21,6 +21,8 @@
     <button type="button" class="tab-button" [class.active]="activeTab() === 'waste'" (click)="setTab('waste')">
       Waste
     </button>
+    <button type="button" class="tab-button" [class.active]="activeTab() === 'history'" (click)="setTab('history')">
+      History</button>
   </nav>
 
   <!-- FOOD TAB -->
@@ -467,5 +469,32 @@
         <strong>{{ totalWasteCost | currency }}</strong>
       </div>
     </div>
-
   </section>
+  <!-- History -->
+  <section *ngIf="activeTab() === 'history'" class="panel">
+  <div class="card">
+    <div class="section-header">
+      <h2 class="card-title">Purchase History</h2>
+      <button class="ghost-btn danger-btn" (click)="clearHistory()" *ngIf="historyItems.length > 0">
+        Clear All History
+      </button>
+    </div>
+
+    <div class="empty-state" *ngIf="historyItems.length === 0">
+      <p>No purchase history recorded yet.</p>
+    </div>
+
+    <div class="history-list">
+      <div class="history-item-row" *ngFor="let h of historyItems">
+        <div class="history-info">
+          <strong>{{ h.name }}</strong>
+          <span class="history-date">{{ h.purchaseDate }}</span>
+        </div>
+        <div class="history-meta">
+          <span class="history-price">${{ h.price.toFixed(2) }}</span>
+          <button class="delete-icon-btn" (click)="deleteHistoryItem(h.id)">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
