@@ -72,14 +72,8 @@
     </form>
 
     <div class="toolbar">
-      <input
-        class="search-input"
-        type="search"
-        [(ngModel)]="searchTerm"
-        name="searchTerm"
-        [ngModelOptions]="{standalone:true}"
-        placeholder="Search food items"
-      />
+      <input class="search-input" type="search" [(ngModel)]="searchTerm" name="searchTerm"
+        [ngModelOptions]="{standalone:true}" placeholder="Search food items" />
 
       <button class="ghost-btn" type="button" (click)="clear()" [disabled]="items().length === 0">
         Clear all
@@ -104,6 +98,7 @@
       <h3 class="status-heading expired-heading">Expired</h3>
 
       <article class="food-card" *ngFor="let item of expiredItems()" [class.opened]="item.opened">
+
         <div class="food-main">
           <div class="food-title-row">
             <h4>{{ item.name }}</h4>
@@ -120,26 +115,40 @@
         </div>
 
         <div class="food-actions">
+          <button class="ghost-btn success-btn" type="button" (click)="eaten(item)">
+            Mark as Eaten
+          </button>
+
+          <button class="ghost-btn" [class.active-frozen]="item.isFrozen" type="button" (click)="toggleFrozen(item)">
+            {{ item.isFrozen ? 'Unfreeze' : 'Freeze' }}
+          </button>
+
           <button class="ghost-btn" type="button" (click)="toggleOpened(item)">
             {{ item.opened ? 'Mark closed' : 'Mark opened' }}
           </button>
+
           <button class="ghost-btn" type="button" (click)="edit(item)">
             Edit
           </button>
+
           <button class="ghost-btn" type="button" (click)="waste(item)">
             Waste
           </button>
+
           <button class="ghost-btn danger-btn" type="button" (click)="delete(item.id)">
             Delete
           </button>
         </div>
+
       </article>
     </div>
+
 
     <div *ngIf="useSoonItems().length > 0" class="status-section">
       <h3 class="status-heading soon-heading">Expiring soon</h3>
 
       <article class="food-card" *ngFor="let item of useSoonItems()" [class.opened]="item.opened">
+
         <div class="food-main">
           <div class="food-title-row">
             <h4>{{ item.name }}</h4>
@@ -156,19 +165,32 @@
         </div>
 
         <div class="food-actions">
+
           <button class="ghost-btn" type="button" (click)="toggleOpened(item)">
             {{ item.opened ? 'Mark closed' : 'Mark opened' }}
           </button>
+
+          <button class="ghost-btn" [class.active-frozen]="item.isFrozen" type="button" (click)="toggleFrozen(item)">
+            {{ item.isFrozen ? 'Unfreeze' : 'Freeze' }}
+          </button>
+
+          <button class="ghost-btn" type="button" (click)="eaten(item)">
+            Mark as Eaten
+          </button>
+
           <button class="ghost-btn" type="button" (click)="edit(item)">
             Edit
           </button>
+
           <button class="ghost-btn" type="button" (click)="waste(item)">
             Waste
           </button>
+
           <button class="ghost-btn danger-btn" type="button" (click)="delete(item.id)">
             Delete
           </button>
         </div>
+
       </article>
     </div>
 
@@ -176,6 +198,7 @@
       <h3 class="status-heading fresh-heading">Fresh</h3>
 
       <article class="food-card" *ngFor="let item of freshItems()" [class.opened]="item.opened">
+
         <div class="food-main">
           <div class="food-title-row">
             <h4>{{ item.name }}</h4>
@@ -186,28 +209,42 @@
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
           </p>
 
+          <div class="food-actions">
+            <button class="ghost-btn" [class.active-frozen]="item.isFrozen" type="button" (click)="toggleFrozen(item)">
+              {{ item.isFrozen ? 'Unfreeze' : 'Freeze' }}
+            </button>
+          </div>
+
           <p class="food-note">
             {{ statusText(item) }} <span *ngIf="item.opened">· opened</span>
           </p>
         </div>
 
+
         <div class="food-actions">
           <button class="ghost-btn" type="button" (click)="toggleOpened(item)">
             {{ item.opened ? 'Mark closed' : 'Mark opened' }}
           </button>
+
+          <button class="ghost-btn success-btn" type="button" (click)="eaten(item)">
+            Mark as Eaten
+          </button>
+
           <button class="ghost-btn" type="button" (click)="edit(item)">
             Edit
           </button>
+
           <button class="ghost-btn" type="button" (click)="waste(item)">
             Waste
           </button>
+
           <button class="ghost-btn danger-btn" type="button" (click)="delete(item.id)">
             Delete
           </button>
         </div>
+
       </article>
     </div>
-
   </section>
 
   <!-- CALENDAR TAB -->
@@ -217,13 +254,8 @@
 
       <div class="field">
         <label for="calendarDate">Pick a date</label>
-        <input
-          id="calendarDate"
-          type="date"
-          [(ngModel)]="calendarDate"
-          name="calendarDate"
-          [ngModelOptions]="{standalone: true}"
-        />
+        <input id="calendarDate" type="date" [(ngModel)]="calendarDate" name="calendarDate"
+          [ngModelOptions]="{standalone: true}" />
       </div>
 
       <div class="empty-state" *ngIf="calendarDate && itemsForDate(calendarDate).length === 0">
@@ -288,12 +320,8 @@
 
       <div class="field">
         <label for="storageFilter">Filter by storage location</label>
-        <select
-          id="storageFilter"
-          [(ngModel)]="storageFilter"
-          name="storageFilter"
-          [ngModelOptions]="{standalone:true}"
-        >
+        <select id="storageFilter" [(ngModel)]="storageFilter" name="storageFilter"
+          [ngModelOptions]="{standalone:true}">
           <option value="all">All</option>
           <option value="fridge">Fridge</option>
           <option value="freezer">Freezer</option>
@@ -356,13 +384,71 @@
   </section>
 
   <!-- WASTE TAB -->
+  <!-- WASTE TAB -->
   <section *ngIf="activeTab() === 'waste'" class="panel">
+
+    <!-- Consumption Efficiency (Items Eaten vs Wasted) -->
+    <div class="card" *ngIf="foodScore && foodScore.total > 0">
+      <h2 class="card-title">Consumption Efficiency</h2>
+
+      <div class="progress-bar-container">
+        <div class="progress-fill-used" [style.width.%]="foodScore.usedPercent"></div>
+        <div class="progress-fill-wasted" [style.width.%]="foodScore.wastePercent"></div>
+      </div>
+
+      <div class="progress-labels">
+        <span>Used: {{ foodScore.usedPercent }}%</span>
+        <span>Wasted: {{ foodScore.wastePercent }}%</span>
+      </div>
+
+      <p class="food-note" style="margin-top: 10px;">
+        Total items tracked: {{ foodScore.total }}
+      </p>
+    </div>
+
+    <!-- Money Chart (Money Used vs Money Wasted) -->
+    <div class="card" *ngIf="totalUsedCost > 0 || totalWasteCost > 0">
+      <h2 class="card-title">Money Impact</h2>
+
+      <div class="money-chart">
+
+        <!-- MONEY USED -->
+        <div class="money-row">
+          <span class="money-label">Money Used</span>
+
+          <div class="money-bar-container">
+            <div class="money-bar-used" [style.width.%]="(totalUsedCost / (totalUsedCost + totalWasteCost)) * 100">
+            </div>
+          </div>
+
+          <span class="money-value">{{ totalUsedCost | currency }}</span>
+        </div>
+
+        <!-- MONEY WASTED -->
+        <div class="money-row">
+          <span class="money-label">Money Wasted</span>
+
+          <div class="money-bar-container">
+            <div class="money-bar-wasted" [style.width.%]="(totalWasteCost / (totalUsedCost + totalWasteCost)) * 100">
+            </div>
+          </div>
+
+          <span class="money-value">{{ totalWasteCost | currency }}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Waste Summary -->
     <div class="card">
       <div class="section-header">
         <h2>Waste summary</h2>
         <button class="ghost-btn" type="button" (click)="clearWaste()" *ngIf="wastedItems.length > 0">
           Clear waste
         </button>
+        <button class="ghost-btn" type="button" (click)="clearEaten()">
+        Clear Eaten 
+      </button>
       </div>
 
       <div class="empty-state" *ngIf="wastedItems.length === 0">
@@ -381,6 +467,5 @@
         <strong>{{ totalWasteCost | currency }}</strong>
       </div>
     </div>
-  </section>
 
-</div>
+  </section>

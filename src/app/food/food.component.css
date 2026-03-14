@@ -379,3 +379,34 @@ select:focus {
     justify-content: flex-end;
   }
 }
+
+/*Progress bar*/
+
+.progress-bar-container {
+  display: flex;
+  height: 20px;
+  width: 100%;
+  background-color: #eee;
+  border-radius: 10px;
+  overflow: hidden; 
+  margin: 10px 0;
+}
+
+/* Green section for eaten food */
+.progress-fill-used {
+  background-color: #2ecc71;
+  height: 100%;
+}
+
+/* Red section for wasted food */
+.progress-fill-wasted {
+  background-color: #e74c3c;
+  height: 100%;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: bold;
+}

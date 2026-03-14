@@ -7,4 +7,6 @@ export interface FoodItem {
   storageLocation?: StorageLocation;
   price: number;
   createdAt: string; // ISO datetime
+  isFrozen?: boolean;
+  daysRemainingWhenFrozen?: number;
 }

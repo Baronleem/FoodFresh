@@ -32,6 +32,9 @@ export class LocalFoodStoreService implements FoodStore {
   private readonly wasteSubject = new BehaviorSubject<{ name: string; price: number }[]>([]);
   readonly wastedItems$ = this.wasteSubject.asObservable();
 
+  private readonly usedSubject = new BehaviorSubject<{ name: string; price: number }[]>([]);
+  readonly usedItems$ = this.usedSubject.asObservable();
+
   list(): Observable<FoodItem[]> {
     return this.subject.asObservable();
   }
@@ -39,6 +42,20 @@ export class LocalFoodStoreService implements FoodStore {
   wasteList(): Observable<{ name: string; price: number }[]> {
     return this.wasteSubject.asObservable();
   }
+
+  readonly foodScore = () => {
+    const used = this.usedSubject.value.length;
+    const wasted = this.wasteSubject.value.length;
+    const total = used + wasted;
+
+    if (total === 0) return { usedPercent: 0, wastePercent: 0, total: 0 };
+
+    return {
+      usedPercent: Math.round((used / total) * 100),
+      wastePercent: Math.round((wasted / total) * 100),
+      total,
+    };
+  };
 
   add(input: {
     name: string;
@@ -66,6 +83,13 @@ export class LocalFoodStoreService implements FoodStore {
     writeToStorage(next);
   }
 
+  use(item: FoodItem): void {
+    const current = this.usedSubject.value;
+    current.push({ name: item.name, price: item.price });
+    this.usedSubject.next([...current]);
+    this.remove(item.id);
+  }
+
   waste(item: FoodItem): void {
     const currentList = this.wasteSubject.value;
 
@@ -82,6 +106,11 @@ export class LocalFoodStoreService implements FoodStore {
   clear(): void {
     this.subject.next([]);
     localStorage.removeItem(KEY);
+  }
+
+  clearWaste(): void {
+    this.wasteSubject.next([]);
+    this.usedSubject.next([]);
   }
 
   edit(

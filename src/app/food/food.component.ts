@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { LocalFoodStoreService } from '../services/local-food-store.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
 
@@ -14,6 +15,8 @@ interface FoodItem {
   createdAt: string;
   price: number;
   opened?: boolean;
+  isFrozen?: boolean;
+  daysRemainingWhenFrozen?: number;
 }
 
 type Status = 'expired' | 'use-soon' | 'fresh';
@@ -23,11 +26,11 @@ type Status = 'expired' | 'use-soon' | 'fresh';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './food.component.html',
-  styleUrls: ['./food.component.css']
+  styleUrls: ['./food.component.css'],
 })
-
 export class FoodComponent {
   private fb = inject(FormBuilder);
+  private foodStore = inject(LocalFoodStoreService);
 
   private readonly STORAGE_KEY = 'foodfresh_items_v1';
   private readonly useSoonDays = 3;
@@ -48,7 +51,6 @@ export class FoodComponent {
 
   // Waste
   wastedItems: { name: string; price: number }[] = [];
-  totalWasteCost = 0;
 
   private readonly itemsSubject = new BehaviorSubject<FoodItem[]>(this.readFromStorage());
   readonly items = toSignal(this.itemsSubject.asObservable(), { initialValue: [] as FoodItem[] });
@@ -113,7 +115,7 @@ export class FoodComponent {
             storageLocation: this.form.value.storageLocation!,
             price: Number(this.form.value.price!),
           }
-        : i
+        : i,
     );
 
     this.saveItems(updatedList);
@@ -134,50 +136,109 @@ export class FoodComponent {
   }
 
   toggleOpened(item: FoodItem): void {
-    this.saveItems(
-      this.items().map((i) => (i.id === item.id ? { ...i, opened: !i.opened } : i))
-    );
+    this.saveItems(this.items().map((i) => (i.id === item.id ? { ...i, opened: !i.opened } : i)));
   }
 
   /*---------------- STORAGE TIPS ---------------- */
 
   storageTips = {
-  fridge: [
-    'Milk and dairy products',
-    'Cooked leftovers',
-    'Fresh vegetables and fruits',
-    'Eggs and butter',
-    'Opened sauces and condiments'
-  ],
+    fridge: [
+      'Milk and dairy products',
+      'Cooked leftovers',
+      'Fresh vegetables and fruits',
+      'Eggs and butter',
+      'Opened sauces and condiments',
+    ],
 
-  freezer: [
-    'Frozen vegetables',
-    'Frozen meat and fish',
-    'Ice cream',
-    'Bread for long storage',
-    'Prepared meals for later use'
-  ],
+    freezer: [
+      'Frozen vegetables',
+      'Frozen meat and fish',
+      'Ice cream',
+      'Bread for long storage',
+      'Prepared meals for later use',
+    ],
 
-  pantry: [
-    'Dry pasta and rice',
-    'Canned foods',
-    'Flour and baking ingredients',
-    'Cooking oils',
-    'Unopened sauces and spices'
-  ]
-};
+    pantry: [
+      'Dry pasta and rice',
+      'Canned foods',
+      'Flour and baking ingredients',
+      'Cooking oils',
+      'Unopened sauces and spices',
+    ],
+  };
 
   /* ---------------- WASTE ---------------- */
 
+  eatenItems: any[] = [];
+  get foodScore() {
+    const eatenCount = this.eatenItems.length;
+    const wastedCount = this.wastedItems.length;
+    const total = eatenCount + wastedCount;
+
+    if (total === 0) return { usedPercent: 0, wastePercent: 0, total: 0 };
+
+    return {
+      usedPercent: Math.round((eatenCount / total) * 100),
+      wastePercent: Math.round((wastedCount / total) * 100),
+      total: total,
+    };
+  }
+  get totalUsedCost(): number {
+    return this.eatenItems.reduce((sum, item) => sum + item.price, 0);
+  }
+  get totalWasteCost(): number {
+    return this.wastedItems.reduce((sum, item) => sum + item.price, 0);
+  }
+
   waste(item: FoodItem): void {
     this.wastedItems.push({ name: item.name, price: item.price });
-    this.totalWasteCost += item.price;
+    this.delete(item.id);
+  }
+
+  eaten(item: FoodItem): void {
+    this.eatenItems.push(item);
     this.delete(item.id);
   }
 
   clearWaste(): void {
     this.wastedItems = [];
-    this.totalWasteCost = 0;
+  }
+  clearEaten(): void {
+  this.eatenItems = [];
+}
+  /* -------------- FROZEN TOGGLE ---------------- */
+  toggleFrozen(item: FoodItem): void {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let updatedItem: FoodItem;
+
+    if (!item.isFrozen) {
+      const [y, m, d] = item.expirationDate.split('-').map(Number);
+      const expDate = new Date(y, m - 1, d);
+
+      const diffTime = expDate.getTime() - today.getTime();
+      const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      updatedItem = {
+        ...item,
+        isFrozen: true,
+        daysRemainingWhenFrozen: daysLeft,
+      };
+    } else {
+      const remaining = item.daysRemainingWhenFrozen || 0;
+      const newExp = new Date(today);
+      newExp.setDate(today.getDate() + remaining);
+
+      updatedItem = {
+        ...item,
+        isFrozen: false,
+        expirationDate: newExp.toISOString().split('T')[0],
+        daysRemainingWhenFrozen: undefined,
+      };
+    }
+
+    this.saveItems(this.items().map((i) => (i.id === item.id ? updatedItem : i)));
   }
 
   /* ---------------- SEARCH ---------------- */
@@ -252,6 +313,10 @@ export class FoodComponent {
   }
 
   statusText(item: FoodItem): string {
+    //if frozen
+    if (item.isFrozen) {
+      return `Frozen (Paused with ${item.daysRemainingWhenFrozen} days left)`;
+    }
     const d = this.daysLeft(item);
     if (d < 0) return `Expired ${Math.abs(d)} day(s) ago`;
     if (d === 0) return 'Expires today';
@@ -297,9 +362,13 @@ export class FoodComponent {
         price: typeof i.price === 'number' && !Number.isNaN(i.price) ? i.price : 0,
         createdAt: String(i.createdAt ?? new Date().toISOString()),
         opened: typeof i.opened === 'boolean' ? i.opened : false,
+        isFrozen: !!i.isFrozen,
+        daysRemainingWhenFrozen: i.daysRemainingWhenFrozen,
       }));
 
-      const cleaned = fixed.filter((x) => x.name.trim().length > 0 && x.expirationDate.length === 10);
+      const cleaned = fixed.filter(
+        (x) => x.name.trim().length > 0 && x.expirationDate.length === 10,
+      );
       return this.sortItems(cleaned);
     } catch {
       return [];
