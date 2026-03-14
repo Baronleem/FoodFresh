@@ -384,10 +384,10 @@
   </section>
 
   <!-- WASTE TAB -->
-  <!-- WASTE TAB -->
+  
   <section *ngIf="activeTab() === 'waste'" class="panel">
 
-    <!-- Consumption Efficiency (Items Eaten vs Wasted) -->
+    <!-- CONSUMPTION CHART-->
     <div class="card" *ngIf="foodScore && foodScore.total > 0">
       <h2 class="card-title">Consumption Efficiency</h2>
 
@@ -406,7 +406,7 @@
       </p>
     </div>
 
-    <!-- Money Chart (Money Used vs Money Wasted) -->
+    <!-- MONEY CHART -->
     <div class="card" *ngIf="totalUsedCost > 0 || totalWasteCost > 0">
       <h2 class="card-title">Money Impact</h2>
 
