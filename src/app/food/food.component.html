@@ -76,6 +76,12 @@
     <div class="toolbar">
       <input class="search-input" type="search" [(ngModel)]="searchTerm" name="searchTerm"
         [ngModelOptions]="{standalone:true}" placeholder="Search food items" />
+      <div class="action-group">
+        <button class="share-btn inventory-btn" type="button" (click)="shareData('inventory')">
+          Copy Inventory
+        </button>
+      </div>
+
 
       <button class="ghost-btn" type="button" (click)="clear()" [disabled]="items().length === 0">
         Clear all
@@ -386,19 +392,19 @@
   </section>
 
   <!-- WASTE TAB -->
-  
+
   <section *ngIf="activeTab() === 'waste'" class="panel">
 
-    <!-- CONSUMPTION CHART-->
+    <!-- Consumption Chart-->
     <div class="card" *ngIf="foodScore && foodScore.total > 0">
       <h2 class="card-title">Consumption Efficiency</h2>
 
-      <div class="progress-bar-container">
-        <div class="progress-fill-used" [style.width.%]="foodScore.usedPercent"></div>
-        <div class="progress-fill-wasted" [style.width.%]="foodScore.wastePercent"></div>
+      <div class="consumption-bar-container">
+        <div class="consumption-fill-used" [style.width.%]="foodScore.usedPercent"></div>
+        <div class="consumption-fill-wasted" [style.width.%]="foodScore.wastePercent"></div>
       </div>
 
-      <div class="progress-labels">
+      <div class="consumption-labels">
         <span>Used: {{ foodScore.usedPercent }}%</span>
         <span>Wasted: {{ foodScore.wastePercent }}%</span>
       </div>
@@ -408,13 +414,13 @@
       </p>
     </div>
 
-    <!-- MONEY CHART -->
+    <!-- Money Chart -->
     <div class="card" *ngIf="totalUsedCost > 0 || totalWasteCost > 0">
       <h2 class="card-title">Money Impact</h2>
 
       <div class="money-chart">
 
-        <!-- MONEY USED -->
+        <!-- Money Used -->
         <div class="money-row">
           <span class="money-label">Money Used</span>
 
@@ -426,7 +432,7 @@
           <span class="money-value">{{ totalUsedCost | currency }}</span>
         </div>
 
-        <!-- MONEY WASTED -->
+        <!-- Money Wasted -->
         <div class="money-row">
           <span class="money-label">Money Wasted</span>
 
@@ -445,12 +451,17 @@
     <div class="card">
       <div class="section-header">
         <h2>Waste summary</h2>
-        <button class="ghost-btn" type="button" (click)="clearWaste()" *ngIf="wastedItems.length > 0">
-          Clear waste
-        </button>
-        <button class="ghost-btn" type="button" (click)="clearEaten()">
-        Clear Eaten 
-      </button>
+        <div class="action-group">
+          <button class="share-btn report-btn" type="button" (click)="shareData('report')">
+            Copy Report
+          </button>
+          <button class="ghost-btn" type="button" (click)="clearWaste()" *ngIf="wastedItems.length > 0">
+            Clear waste
+          </button>
+          <button class="ghost-btn" type="button" (click)="clearEaten()">
+            Clear Eaten
+          </button>
+        </div>
       </div>
 
       <div class="empty-state" *ngIf="wastedItems.length === 0">
@@ -472,29 +483,34 @@
   </section>
   <!-- History -->
   <section *ngIf="activeTab() === 'history'" class="panel">
-  <div class="card">
-    <div class="section-header">
-      <h2 class="card-title">Purchase History</h2>
-      <button class="ghost-btn danger-btn" (click)="clearHistory()" *ngIf="historyItems.length > 0">
-        Clear All History
-      </button>
-    </div>
-
-    <div class="empty-state" *ngIf="historyItems.length === 0">
-      <p>No purchase history recorded yet.</p>
-    </div>
-
-    <div class="history-list">
-      <div class="history-item-row" *ngFor="let h of historyItems">
-        <div class="history-info">
-          <strong>{{ h.name }}</strong>
-          <span class="history-date">{{ h.purchaseDate }}</span>
+    <div class="card">
+      <div class="section-header">
+        <h2 class="card-title">Purchase History</h2>
+        <div class="action-group">
+          <button class="share-btn history-btn" (click)="shareData('history')" *ngIf="historyItems.length > 0">
+            Copy History
+          </button>
+          <button class="ghost-btn danger-btn" (click)="clearHistory()" *ngIf="historyItems.length > 0">
+            Clear All History
+          </button>
         </div>
-        <div class="history-meta">
-          <span class="history-price">${{ h.price.toFixed(2) }}</span>
-          <button class="delete-icon-btn" (click)="deleteHistoryItem(h.id)">✕</button>
+      </div>
+
+      <div class="empty-state" *ngIf="historyItems.length === 0">
+        <p>No purchase history recorded yet.</p>
+      </div>
+
+      <div class="history-list">
+        <div class="history-item-row" *ngFor="let h of historyItems">
+          <div class="history-info">
+            <strong>{{ h.name }}</strong>
+            <span class="history-date">{{ h.purchaseDate }}</span>
+          </div>
+          <div class="history-meta">
+            <span class="history-price">${{ h.price.toFixed(2) }}</span>
+            <button class="delete-icon-btn" (click)="deleteHistoryItem(h.id)">✕</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>

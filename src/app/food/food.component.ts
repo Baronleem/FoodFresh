@@ -58,7 +58,9 @@ export class FoodComponent {
   storageFilter: StorageLocation | 'all' = 'all';
 
   // Waste
-  wastedItems: { name: string; price: number }[] = JSON.parse(localStorage.getItem('foodfresh_waste') || '[]');
+  wastedItems: { name: string; price: number }[] = JSON.parse(
+    localStorage.getItem('foodfresh_waste') || '[]',
+  );
   eatenItems: any[] = JSON.parse(localStorage.getItem('foodfresh_eaten') || '[]');
 
   //History
@@ -175,7 +177,6 @@ export class FoodComponent {
     this.saveHistory();
   }
 
-
   /*---------------- STORAGE TIPS ---------------- */
 
   storageTips = {
@@ -206,9 +207,9 @@ export class FoodComponent {
 
   /* ---------------- WASTE ---------------- */
   private saveStats(): void {
-  localStorage.setItem('foodfresh_waste', JSON.stringify(this.wastedItems));
-  localStorage.setItem('foodfresh_eaten', JSON.stringify(this.eatenItems));
-}
+    localStorage.setItem('foodfresh_waste', JSON.stringify(this.wastedItems));
+    localStorage.setItem('foodfresh_eaten', JSON.stringify(this.eatenItems));
+  }
   get foodScore() {
     const eatenCount = this.eatenItems.length;
     const wastedCount = this.wastedItems.length;
@@ -385,6 +386,45 @@ export class FoodComponent {
       const diff = Math.floor((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       return diff >= 0 && diff <= 7;
     });
+  }
+
+  /* ---------------- SHARE ---------------- */
+  async shareData(type: 'report' | 'inventory' | 'history'): Promise<void> {
+    let title = '';
+    let shareText = '';
+
+    if (type === 'report') {
+      title = 'Waste Report';
+      shareText = [
+        'Waste Stats',
+        '',
+        `Efficiency: ${this.foodScore.usedPercent}% Used`,
+        `Items Eaten: ${this.eatenItems.length}`,
+        `Items Wasted: ${this.wastedItems.length}`,
+        `Money Lost: $${this.totalWasteCost.toFixed(2)}`,
+      ].join('\n');
+    } else if (type === 'inventory') {
+      title = 'Inventory List';
+      const inventory = this.items()
+        .map((i) => `• ${i.name} (Exp: ${i.expirationDate})`)
+        .join('\n');
+
+      shareText = ['Current Inventory', '', inventory || 'No items in stock.'].join('\n');
+    } else if (type === 'history') {
+      title = 'Purchase History';
+      const history = this.historyItems
+        .map((h) => `• ${h.name}: $${h.price.toFixed(2)} (${h.purchaseDate})`)
+        .join('\n');
+
+      shareText = ['Purchase History', '', history || 'No history recorded.'].join('\n');
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareText);
+      alert(title + ' copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
   }
 
   /* ---------------- HELPERS ---------------- */

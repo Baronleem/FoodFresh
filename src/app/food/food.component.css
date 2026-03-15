@@ -380,9 +380,9 @@ select:focus {
   }
 }
 
-/* Progress bar */
+/* Consumption Bar Waste Used*/
 
-.progress-bar-container {
+.consumption-bar-container {
   display: flex;
   height: 20px;
   width: 100%;
@@ -393,18 +393,18 @@ select:focus {
 }
 
 /* Green section for eaten food */
-.progress-fill-used {
+.consumption-fill-used {
   background-color: #2ecc71;
   height: 100%;
 }
 
 /* Red section for wasted food */
-.progress-fill-wasted {
+.consumption-fill-wasted {
   background-color: #e74c3c;
   height: 100%;
 }
 
-.progress-labels {
+.consumption-labels {
   display: flex;
   justify-content: space-between;
   font-size: 0.9rem;
