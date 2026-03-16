@@ -34,7 +34,7 @@
 
 .tab-bar {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -409,4 +409,27 @@ select:focus {
   justify-content: space-between;
   font-size: 0.9rem;
   font-weight: bold;
+}
+.storage-advice-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f9f9f9;
+}
+
+.recipe-warning {
+  background: #fff3cd;
+  border: 1px solid #ffe69c;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.recipe-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #f9f9f9;
 }
