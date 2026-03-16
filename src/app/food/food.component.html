@@ -253,19 +253,7 @@
 
       </article>
     </div>
-        <div class="card">
-      <h2 class="card-title">Best Ways to Store Foods</h2>
-
-      <div class="empty-state" *ngIf="bestStorageItems().length === 0">
-        No food items added yet.
-      </div>
-
-      <div *ngFor="let item of bestStorageItems()" class="storage-advice-card">
-        <h4>{{ item.name }}</h4>
-        <p><strong>Current Location:</strong> {{ item.storageLocation }}</p>
-        <p><strong>Advice:</strong> {{ getStorageAdvice(item) }}</p>
-      </div>
-    </div>
+       
   </section>
 
   <!-- CALENDAR TAB -->
@@ -371,7 +359,21 @@
         </div>
       </article>
     </div>
+    <div class="card">
+  <h2 class="card-title">Best Ways to Store Foods</h2>
+
+  <div class="empty-state" *ngIf="bestStorageItems().length === 0">
+    No food items added yet.
+  </div>
+
+  <div *ngFor="let item of bestStorageItems()" class="storage-advice-card">
+    <h4>{{ item.name }}</h4>
+    <p><strong>Current Location:</strong> {{ item.storageLocation }}</p>
+    <p><strong>Advice:</strong> {{ getStorageAdvice(item) }}</p>
+  </div>
+</div>
   </section>
+  
 
   <!-- TIPS TAB -->
   <section *ngIf="activeTab() === 'tips'" class="panel">
@@ -554,3 +556,4 @@
       </div>
     </div>
   </section>
+  </div>
