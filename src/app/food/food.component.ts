@@ -28,6 +28,11 @@ interface HistoryItem {
 }
 
 type Status = 'expired' | 'use-soon' | 'fresh';
+interface RecipeSuggestion {
+  title: string;
+  ingredients: string[];
+  reason: string;
+}
 
 @Component({
   selector: 'app-food',
@@ -204,6 +209,106 @@ export class FoodComponent {
       'Unopened sauces and spices',
     ],
   };
+  /* ---------------- SMART STORAGE ADVICE ---------------- */
+
+getStorageAdvice(item: FoodItem): string {
+  const name = item.name.toLowerCase();
+
+  if (name.includes('milk')) return 'Keep sealed in the fridge and use within a few days after opening.';
+  if (name.includes('bread')) return 'Store in a cool dry place. Freeze it if you will not finish it soon.';
+  if (name.includes('apple')) return 'Store in the fridge to keep it fresh longer.';
+  if (name.includes('banana')) return 'Keep on the counter until ripe. Do not refrigerate unless already ripe.';
+  if (name.includes('chicken') || name.includes('beef') || name.includes('meat'))
+    return 'Keep in the fridge if using soon, otherwise freeze it right away.';
+  if (name.includes('ice cream')) return 'Keep in the freezer and avoid leaving it out too long.';
+  if (name.includes('egg')) return 'Store in the fridge in the original carton.';
+  if (name.includes('rice') || name.includes('pasta'))
+    return 'Store in a cool dry pantry in a sealed container.';
+  if (name.includes('cheese')) return 'Keep in the fridge and reseal after opening.';
+  if (name.includes('lettuce') || name.includes('spinach'))
+    return 'Keep in the fridge and use a container or bag with some airflow.';
+
+  if (item.storageLocation === 'fridge')
+    return 'Best kept cold in the fridge and checked regularly.';
+  if (item.storageLocation === 'freezer')
+    return 'Keep frozen until needed to make it last longer.';
+
+  return 'Store in a cool dry pantry away from sunlight and heat.';
+}
+
+bestStorageItems(): FoodItem[] {
+  return this.items().slice(0, 10);
+}
+    /* ---------------- RECIPE SUGGESTIONS ---------------- */
+
+  get recipeSuggestions(): RecipeSuggestion[] {
+    const names = this.items().map((i) => i.name.toLowerCase());
+    const has = (word: string) => names.some((n) => n.includes(word));
+
+    const suggestions: RecipeSuggestion[] = [];
+
+    if (has('bread') && has('cheese')) {
+      suggestions.push({
+        title: 'Grilled Cheese Sandwich',
+        ingredients: ['Bread', 'Cheese'],
+        reason: 'Good option because you already have bread and cheese.',
+      });
+    }
+
+    if (has('egg') && (has('bread') || has('cheese'))) {
+      suggestions.push({
+        title: 'Quick Breakfast Sandwich',
+        ingredients: ['Eggs', 'Bread', 'Cheese'],
+        reason: 'Uses common breakfast items already in your inventory.',
+      });
+    }
+
+    if (has('milk') && has('banana')) {
+      suggestions.push({
+        title: 'Banana Smoothie',
+        ingredients: ['Milk', 'Banana'],
+        reason: 'Easy way to use ripe fruit before it goes bad.',
+      });
+    }
+
+    if ((has('chicken') || has('beef')) && has('rice')) {
+      suggestions.push({
+        title: 'Rice Bowl',
+        ingredients: ['Chicken or Beef', 'Rice'],
+        reason: 'Simple meal using protein and pantry ingredients.',
+      });
+    }
+
+    if (has('pasta') && (has('cheese') || has('milk'))) {
+      suggestions.push({
+        title: 'Simple Creamy Pasta',
+        ingredients: ['Pasta', 'Cheese or Milk'],
+        reason: 'Good way to make a meal from basic ingredients.',
+      });
+    }
+
+    if (has('lettuce') || has('spinach') || has('apple')) {
+      suggestions.push({
+        title: 'Fresh Salad Bowl',
+        ingredients: ['Lettuce/Spinach/Fruit'],
+        reason: 'Helpful for using produce before expiration.',
+      });
+    }
+
+    if (suggestions.length === 0) {
+      suggestions.push({
+        title: 'No matching recipe yet',
+        ingredients: [],
+        reason: 'Add more food items to get recipe suggestions.',
+      });
+    }
+
+    return suggestions.slice(0, 5);
+  }
+
+  useSoonRecipeItems(): FoodItem[] {
+    return this.useSoonItems().slice(0, 5);
+  }
 
   /* ---------------- WASTE ---------------- */
   private saveStats(): void {
