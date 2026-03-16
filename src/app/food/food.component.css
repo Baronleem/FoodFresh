@@ -11,18 +11,18 @@
 }
 
 .app-shell {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 20px;
 }
 
 .app-header {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .app-title {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 2rem;
   font-weight: 700;
 }
 
@@ -36,13 +36,13 @@
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .tab-button {
   border: 1px solid #d1d5db;
   background: #ffffff;
-  border-radius: 999px;
+  border-radius: 10px;
   padding: 10px 8px;
   font-size: 0.85rem;
   cursor: pointer;
@@ -63,12 +63,13 @@
 .card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .form-card {
+  display: grid;
   gap: 12px;
 }
 
@@ -83,7 +84,6 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 8px;
 }
 
 .item-count {
@@ -110,9 +110,9 @@ button {
 input,
 select {
   width: 100%;
-  min-height: 44px;
+  min-height: 42px;
   border: 1px solid #d1d5db;
-  border-radius: 12px;
+  border-radius: 10px;
   padding: 10px 12px;
   background: #ffffff;
 }
@@ -147,8 +147,8 @@ select:focus {
 
 .primary-btn,
 .ghost-btn {
-  min-height: 42px;
-  border-radius: 12px;
+  min-height: 40px;
+  border-radius: 10px;
   padding: 10px 14px;
   cursor: pointer;
 }
@@ -179,10 +179,16 @@ select:focus {
   background: #fff7f7;
 }
 
+.success-btn {
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+}
+
 .empty-state {
   padding: 16px;
   border: 1px dashed #d1d5db;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #6b7280;
   background: #ffffff;
 }
@@ -207,7 +213,7 @@ select:focus {
 .food-card {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 14px;
   display: grid;
   gap: 12px;
@@ -218,7 +224,7 @@ select:focus {
 }
 
 .food-card.opened {
-  opacity: 0.72;
+  opacity: 0.75;
 }
 
 .food-main {
@@ -274,7 +280,7 @@ select:focus {
 
 .storage-summary {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
   margin-bottom: 16px;
 }
@@ -282,7 +288,7 @@ select:focus {
 .summary-box {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 12px;
   display: flex;
   justify-content: space-between;
@@ -321,6 +327,23 @@ select:focus {
   font-size: 0.9rem;
 }
 
+.storage-advice-card,
+.recipe-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  background: #f9fafb;
+}
+
+.recipe-warning {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
 .waste-list {
   display: grid;
   gap: 8px;
@@ -345,15 +368,44 @@ select:focus {
   color: #b91c1c;
 }
 
+.consumption-bar-container {
+  display: flex;
+  height: 20px;
+  width: 100%;
+  background-color: #eee;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.consumption-fill-used {
+  background-color: #2ecc71;
+  height: 100%;
+}
+
+.consumption-fill-wasted {
+  background-color: #e74c3c;
+  height: 100%;
+}
+
+.consumption-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+@media (max-width: 800px) {
+  .tab-bar {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .storage-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (min-width: 640px) {
-  .app-shell {
-    padding: 24px;
-  }
-
-  .tab-button {
-    font-size: 0.95rem;
-  }
-
   .form-card {
     grid-template-columns: 1fr 1fr;
   }
@@ -366,10 +418,6 @@ select:focus {
     grid-column: 1 / -1;
   }
 
-  .storage-summary {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .food-card {
     grid-template-columns: 1fr auto;
     align-items: start;
@@ -378,58 +426,4 @@ select:focus {
   .food-actions {
     justify-content: flex-end;
   }
-}
-
-/* Consumption Bar Waste Used*/
-
-.consumption-bar-container {
-  display: flex;
-  height: 20px;
-  width: 100%;
-  background-color: #eee;
-  border-radius: 10px;
-  overflow: hidden; 
-  margin: 10px 0;
-}
-
-/* Green section for eaten food */
-.consumption-fill-used {
-  background-color: #2ecc71;
-  height: 100%;
-}
-
-/* Red section for wasted food */
-.consumption-fill-wasted {
-  background-color: #e74c3c;
-  height: 100%;
-}
-
-.consumption-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
-.storage-advice-card {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #f9f9f9;
-}
-
-.recipe-warning {
-  background: #fff3cd;
-  border: 1px solid #ffe69c;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-}
-
-.recipe-card {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #f9f9f9;
 }
