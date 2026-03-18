@@ -504,7 +504,7 @@ bestStorageItems(): FoodItem[] {
         'Waste Stats',
         '',
         `Efficiency: ${this.foodScore.usedPercent}% Used`,
-        `Items Eaten: ${this.eatenItems.length}`,
+        `Items Used: ${this.eatenItems.length}`,
         `Items Wasted: ${this.wastedItems.length}`,
         `Money Lost: $${this.totalWasteCost.toFixed(2)}`,
       ].join('\n');
