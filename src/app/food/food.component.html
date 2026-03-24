@@ -62,6 +62,21 @@
         </small>
       </div>
 
+      <div class="field">
+  <label>Add by photo</label>
+
+  <input 
+    type="file" 
+    accept="image/*" 
+    capture="environment"
+    (change)="onImageSelected($event)"
+  />
+
+  <small class="hint">
+    Take a photo of product label or expiration date
+  </small>
+</div>
+
       <div class="form-actions">
         <button class="primary-btn" type="submit" [disabled]="form.invalid">
           {{ editingId ? 'Update item' : 'Add item' }}

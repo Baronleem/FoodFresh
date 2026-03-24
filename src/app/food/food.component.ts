@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators, FormsModule } from '@angu
 import { LocalFoodStoreService } from '../services/local-food-store.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs';
+import Tesseract from 'tesseract.js';
 
 type StorageLocation = 'fridge' | 'freezer' | 'pantry';
 
@@ -531,6 +532,60 @@ bestStorageItems(): FoodItem[] {
       console.error('Failed to copy text: ', err);
     }
   }
+
+  /*----------------PHOTO UPLOAD (BONUS)----------------*/
+  async extractTextFromImage(file: File): Promise<string> {
+  const result = await Tesseract.recognize(file, 'eng');
+  return result.data.text;
+}
+autoFillFromText(text: string): void {
+  const lower = text.toLowerCase();
+
+  const dateMatch = text.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}/);
+
+  let formattedDate = '';
+
+  if (dateMatch) {
+    const raw = dateMatch[0];
+
+    if (raw.includes('/')) {
+      const [d, m, y] = raw.split('/');
+      formattedDate = `${y}-${m}-${d}`;
+    } else {
+      formattedDate = raw;
+    }
+  }
+
+  let detectedName = '';
+
+  if (lower.includes('milk')) detectedName = 'Milk';
+  else if (lower.includes('bread')) detectedName = 'Bread';
+  else if (lower.includes('egg')) detectedName = 'Eggs';
+  else if (lower.includes('cheese')) detectedName = 'Cheese';
+  else detectedName = 'Unknown item';
+
+  this.form.patchValue({
+    name: detectedName,
+    expirationDate: formattedDate || '',
+  });
+}
+
+async onImageSelected(event: any): Promise<void> {
+  const file: File = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const text = await this.extractTextFromImage(file);
+
+    console.log('Detected text:', text);
+
+    this.autoFillFromText(text);
+
+  } catch (err) {
+    console.error('Image processing failed', err);
+    alert('Could not read the image. Try again.');
+  }
+}
 
   /* ---------------- HELPERS ---------------- */
 
