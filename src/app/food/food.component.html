@@ -55,6 +55,15 @@
       </div>
 
       <div class="field">
+        <label for="quantity">Quantity</label>
+        <input id="quantity" type="number" formControlName="quantity" placeholder="1" min="1" />
+        <small class="error" *ngIf="form.controls.quantity.touched && form.controls.quantity.invalid">
+          Quantity must be at least 1.
+        </small>
+      </div>
+
+
+      <div class="field">
         <label for="price">Price ($)</label>
         <input id="price" type="number" formControlName="price" placeholder="0.00" step="0.01" />
         <small class="error" *ngIf="form.controls.price.touched && form.controls.price.invalid">
@@ -63,19 +72,14 @@
       </div>
 
       <div class="field">
-  <label>Add by photo</label>
+        <label>Add by photo</label>
 
-  <input 
-    type="file" 
-    accept="image/*" 
-    capture="environment"
-    (change)="onImageSelected($event)"
-  />
+        <input type="file" accept="image/*" capture="environment" (change)="onImageSelected($event)" />
 
-  <small class="hint">
-    Take a photo of product label or expiration date
-  </small>
-</div>
+        <small class="hint">
+          Take a photo of product label or expiration date
+        </small>
+      </div>
 
       <div class="form-actions">
         <button class="primary-btn" type="submit" [disabled]="form.invalid">
@@ -125,11 +129,13 @@
         <div class="food-main">
           <div class="food-title-row">
             <h4>{{ item.name }}</h4>
+            <span class="qty-multiplier" *ngIf="item.quantity > 1">x{{ item.quantity }}</span>
             <span class="badge status-expired">{{ status(item) }}</span>
           </div>
 
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
+            <span class="qty-label" *ngIf="item.quantity > 1">(Qty: {{ item.quantity }})</span>
           </p>
 
           <p class="food-note">
@@ -180,6 +186,7 @@
 
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
+            <span class="qty-label" *ngIf="item.quantity > 1">(Qty: {{ item.quantity }})</span>
           </p>
 
           <p class="food-note">
@@ -230,6 +237,7 @@
 
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
+            <span class="qty-label" *ngIf="item.quantity > 1">(Qty: {{ item.quantity }})</span>
           </p>
 
           <div class="food-actions">
@@ -268,7 +276,7 @@
 
       </article>
     </div>
-       
+
   </section>
 
   <!-- CALENDAR TAB -->
@@ -292,6 +300,7 @@
             <h4>{{ item.name }}</h4>
           </div>
           <p class="food-meta">{{ item.storageLocation }} · {{ item.price | currency }}</p>
+          <span class="qty-label" *ngIf="item.quantity > 1">(Qty: {{ item.quantity }})</span>
           <p class="food-note">{{ statusText(item) }}</p>
         </div>
 
@@ -375,20 +384,20 @@
       </article>
     </div>
     <div class="card">
-  <h2 class="card-title">Best Ways to Store Foods</h2>
+      <h2 class="card-title">Best Ways to Store Foods</h2>
 
-  <div class="empty-state" *ngIf="bestStorageItems().length === 0">
-    No food items added yet.
-  </div>
+      <div class="empty-state" *ngIf="bestStorageItems().length === 0">
+        No food items added yet.
+      </div>
 
-  <div *ngFor="let item of bestStorageItems()" class="storage-advice-card">
-    <h4>{{ item.name }}</h4>
-    <p><strong>Current Location:</strong> {{ item.storageLocation }}</p>
-    <p><strong>Advice:</strong> {{ getStorageAdvice(item) }}</p>
-  </div>
-</div>
+      <div *ngFor="let item of bestStorageItems()" class="storage-advice-card">
+        <h4>{{ item.name }}</h4>
+        <p><strong>Current Location:</strong> {{ item.storageLocation }}</p>
+        <p><strong>Advice:</strong> {{ getStorageAdvice(item) }}</p>
+      </div>
+    </div>
   </section>
-  
+
 
   <!-- TIPS TAB -->
   <section *ngIf="activeTab() === 'tips'" class="panel">
@@ -419,7 +428,7 @@
         <p class="tip-note">Store pantry items in a cool, dry, and dark place.</p>
       </div>
     </div>
-        <div class="card">
+    <div class="card">
       <h2 class="card-title">Recipe Suggestions</h2>
 
       <div *ngIf="useSoonRecipeItems().length > 0" class="recipe-warning">
@@ -461,7 +470,7 @@
       </div>
 
       <div class="consumption-labels">
-        <span>Used: {{ foodScore.usedPercent }}%</span>
+        <span>Used: {{ foodScore.usedPercent }}% </span>
         <span>Wasted: {{ foodScore.wastePercent }}%</span>
       </div>
 
@@ -537,7 +546,7 @@
       </div>
     </div>
   </section>
-  
+
   <!-- HISTORY -->
   <section *ngIf="activeTab() === 'history'" class="panel">
     <div class="card">
@@ -560,7 +569,7 @@
       <div class="history-list">
         <div class="history-item-row" *ngFor="let h of historyItems">
           <div class="history-info">
-            <strong>{{ h.name }}</strong>
+            <strong>{{ h.name }} <small class="history-qty" *ngIf="h.quantity > 1">(x{{ h.quantity }})</small></strong>
             <span class="history-date">{{ h.purchaseDate }}</span>
           </div>
           <div class="history-meta">
@@ -571,4 +580,4 @@
       </div>
     </div>
   </section>
-  </div>
+</div>

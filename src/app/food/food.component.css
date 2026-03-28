@@ -300,6 +300,26 @@ input[type="file"] {
   margin-top: 10px;
   color: #b91c1c;
 }
+/* CONSUMPTION BAR */
+.consumption-bar-container{
+  display: flex;
+  background: #eee;
+  height: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 10px 0;
+}
+
+.consumption-fill-used{
+  background: green;
+  height: 100%;
+}
+
+.consumption-fill-wasted{
+  background: red;
+  height: 100%;
+}
+
 
 /* RESPONSIVE */
 @media (min-width: 640px) {

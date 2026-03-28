@@ -15,6 +15,7 @@ interface FoodItem {
   storageLocation: StorageLocation;
   createdAt: string;
   price: number;
+  quantity: number;
   opened?: boolean;
   isFrozen?: boolean;
   daysRemainingWhenFrozen?: number;
@@ -25,6 +26,7 @@ interface HistoryItem {
   id: string;
   name: string;
   price: number;
+  quantity: number;
   purchaseDate: string;
 }
 
@@ -64,9 +66,8 @@ export class FoodComponent {
   storageFilter: StorageLocation | 'all' = 'all';
 
   // Waste
-  wastedItems: { name: string; price: number }[] = JSON.parse(
-    localStorage.getItem('foodfresh_waste') || '[]',
-  );
+  wastedItems: FoodItem[] = JSON.parse(localStorage.getItem('foodfresh_waste') || '[]');
+
   eatenItems: any[] = JSON.parse(localStorage.getItem('foodfresh_eaten') || '[]');
 
   //History
@@ -84,6 +85,9 @@ export class FoodComponent {
     price: this.fb.control<number>(0, {
       validators: [Validators.required, Validators.min(0)],
     }),
+    quantity: this.fb.control<number>(1, {
+      validators: [Validators.required, Validators.min(1)],
+    }),
   });
 
   /* ---------------- CRUD ---------------- */
@@ -94,12 +98,18 @@ export class FoodComponent {
       return;
     }
 
+    const quantity = Number(this.form.get('quantity')?.value || 1);
+    const totalPrice = Number(this.form.value.price || 0);
+    const pricePerUnit = Number(this.form.value.price || 0);
+    const names = this.normalizeName(this.form.value.name!);
+
     const item: FoodItem = {
       id: crypto.randomUUID(),
       name: this.normalizeName(this.form.value.name!),
       expirationDate: this.form.value.expirationDate!,
       storageLocation: this.form.value.storageLocation!,
-      price: Number(this.form.value.price!),
+      quantity: quantity,
+      price: pricePerUnit,
       createdAt: new Date().toISOString(),
       opened: false,
     };
@@ -109,6 +119,7 @@ export class FoodComponent {
       id: item.id,
       name: item.name,
       price: item.price,
+      quantity: quantity,
       purchaseDate: new Date().toISOString().split('T')[0],
     };
 
@@ -126,6 +137,7 @@ export class FoodComponent {
       expirationDate: item.expirationDate,
       storageLocation: item.storageLocation,
       price: item.price,
+      quantity: item.quantity,
     });
   }
 
@@ -137,6 +149,11 @@ export class FoodComponent {
       return;
     }
 
+    const quantity = Number(this.form.get('quantity')?.value || 1);
+    const totalPrice = Number(this.form.value.price || 0);
+    const pricePerUnit = totalPrice / quantity;
+    const names = this.normalizeName(this.form.value.name!);
+
     const updatedList = this.items().map((i) =>
       i.id === this.editingId
         ? {
@@ -144,7 +161,8 @@ export class FoodComponent {
             name: this.normalizeName(this.form.value.name!),
             expirationDate: this.form.value.expirationDate!,
             storageLocation: this.form.value.storageLocation!,
-            price: Number(this.form.value.price!),
+            quantity: quantity,
+            price: pricePerUnit,
           }
         : i,
     );
@@ -212,35 +230,38 @@ export class FoodComponent {
   };
   /* ---------------- SMART STORAGE ADVICE ---------------- */
 
-getStorageAdvice(item: FoodItem): string {
-  const name = item.name.toLowerCase();
+  getStorageAdvice(item: FoodItem): string {
+    const name = item.name.toLowerCase();
 
-  if (name.includes('milk')) return 'Keep sealed in the fridge and use within a few days after opening.';
-  if (name.includes('bread')) return 'Store in a cool dry place. Freeze it if you will not finish it soon.';
-  if (name.includes('apple')) return 'Store in the fridge to keep it fresh longer.';
-  if (name.includes('banana')) return 'Keep on the counter until ripe. Do not refrigerate unless already ripe.';
-  if (name.includes('chicken') || name.includes('beef') || name.includes('meat'))
-    return 'Keep in the fridge if using soon, otherwise freeze it right away.';
-  if (name.includes('ice cream')) return 'Keep in the freezer and avoid leaving it out too long.';
-  if (name.includes('egg')) return 'Store in the fridge in the original carton.';
-  if (name.includes('rice') || name.includes('pasta'))
-    return 'Store in a cool dry pantry in a sealed container.';
-  if (name.includes('cheese')) return 'Keep in the fridge and reseal after opening.';
-  if (name.includes('lettuce') || name.includes('spinach'))
-    return 'Keep in the fridge and use a container or bag with some airflow.';
+    if (name.includes('milk'))
+      return 'Keep sealed in the fridge and use within a few days after opening.';
+    if (name.includes('bread'))
+      return 'Store in a cool dry place. Freeze it if you will not finish it soon.';
+    if (name.includes('apple')) return 'Store in the fridge to keep it fresh longer.';
+    if (name.includes('banana'))
+      return 'Keep on the counter until ripe. Do not refrigerate unless already ripe.';
+    if (name.includes('chicken') || name.includes('beef') || name.includes('meat'))
+      return 'Keep in the fridge if using soon, otherwise freeze it right away.';
+    if (name.includes('ice cream')) return 'Keep in the freezer and avoid leaving it out too long.';
+    if (name.includes('egg')) return 'Store in the fridge in the original carton.';
+    if (name.includes('rice') || name.includes('pasta'))
+      return 'Store in a cool dry pantry in a sealed container.';
+    if (name.includes('cheese')) return 'Keep in the fridge and reseal after opening.';
+    if (name.includes('lettuce') || name.includes('spinach'))
+      return 'Keep in the fridge and use a container or bag with some airflow.';
 
-  if (item.storageLocation === 'fridge')
-    return 'Best kept cold in the fridge and checked regularly.';
-  if (item.storageLocation === 'freezer')
-    return 'Keep frozen until needed to make it last longer.';
+    if (item.storageLocation === 'fridge')
+      return 'Best kept cold in the fridge and checked regularly.';
+    if (item.storageLocation === 'freezer')
+      return 'Keep frozen until needed to make it last longer.';
 
-  return 'Store in a cool dry pantry away from sunlight and heat.';
-}
+    return 'Store in a cool dry pantry away from sunlight and heat.';
+  }
 
-bestStorageItems(): FoodItem[] {
-  return this.items().slice(0, 10);
-}
-    /* ---------------- RECIPE SUGGESTIONS ---------------- */
+  bestStorageItems(): FoodItem[] {
+    return this.items().slice(0, 10);
+  }
+  /* ---------------- RECIPE SUGGESTIONS ---------------- */
 
   get recipeSuggestions(): RecipeSuggestion[] {
     const names = this.items().map((i) => i.name.toLowerCase());
@@ -337,15 +358,29 @@ bestStorageItems(): FoodItem[] {
   }
 
   waste(item: FoodItem): void {
-    this.wastedItems.push({ name: item.name, price: item.price });
+    this.wastedItems.push({ ...item, quantity: 1 });
     this.saveStats();
-    this.delete(item.id);
+    if (item.quantity > 1) {
+      //reduce the quantity by 1
+      const updatedList = this.items().map((i) =>
+       i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,);
+      this.saveItems(updatedList);
+    } else {
+      this.delete(item.id);
+    }
   }
 
   eaten(item: FoodItem): void {
-    this.eatenItems.push(item);
+    this.eatenItems.push({ ...item, quantity: 1 });
     this.saveStats();
-    this.delete(item.id);
+       if (item.quantity > 1) {
+      //reduce the quantity by 1
+      const updatedList = this.items().map((i) =>
+       i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,);
+      this.saveItems(updatedList);
+    } else {
+      this.delete(item.id);
+    }
   }
 
   clearWaste(): void {
@@ -535,57 +570,56 @@ bestStorageItems(): FoodItem[] {
 
   /*----------------PHOTO UPLOAD (BONUS)----------------*/
   async extractTextFromImage(file: File): Promise<string> {
-  const result = await Tesseract.recognize(file, 'eng');
-  return result.data.text;
-}
-autoFillFromText(text: string): void {
-  const lower = text.toLowerCase();
+    const result = await Tesseract.recognize(file, 'eng');
+    return result.data.text;
+  }
+  autoFillFromText(text: string): void {
+    const lower = text.toLowerCase();
 
-  const dateMatch = text.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}/);
+    const dateMatch = text.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}/);
 
-  let formattedDate = '';
+    let formattedDate = '';
 
-  if (dateMatch) {
-    const raw = dateMatch[0];
+    if (dateMatch) {
+      const raw = dateMatch[0];
 
-    if (raw.includes('/')) {
-      const [d, m, y] = raw.split('/');
-      formattedDate = `${y}-${m}-${d}`;
-    } else {
-      formattedDate = raw;
+      if (raw.includes('/')) {
+        const [d, m, y] = raw.split('/');
+        formattedDate = `${y}-${m}-${d}`;
+      } else {
+        formattedDate = raw;
+      }
+    }
+
+    let detectedName = '';
+
+    if (lower.includes('milk')) detectedName = 'Milk';
+    else if (lower.includes('bread')) detectedName = 'Bread';
+    else if (lower.includes('egg')) detectedName = 'Eggs';
+    else if (lower.includes('cheese')) detectedName = 'Cheese';
+    else detectedName = 'Unknown item';
+
+    this.form.patchValue({
+      name: detectedName,
+      expirationDate: formattedDate || '',
+    });
+  }
+
+  async onImageSelected(event: any): Promise<void> {
+    const file: File = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await this.extractTextFromImage(file);
+
+      console.log('Detected text:', text);
+
+      this.autoFillFromText(text);
+    } catch (err) {
+      console.error('Image processing failed', err);
+      alert('Could not read the image. Try again.');
     }
   }
-
-  let detectedName = '';
-
-  if (lower.includes('milk')) detectedName = 'Milk';
-  else if (lower.includes('bread')) detectedName = 'Bread';
-  else if (lower.includes('egg')) detectedName = 'Eggs';
-  else if (lower.includes('cheese')) detectedName = 'Cheese';
-  else detectedName = 'Unknown item';
-
-  this.form.patchValue({
-    name: detectedName,
-    expirationDate: formattedDate || '',
-  });
-}
-
-async onImageSelected(event: any): Promise<void> {
-  const file: File = event.target.files[0];
-  if (!file) return;
-
-  try {
-    const text = await this.extractTextFromImage(file);
-
-    console.log('Detected text:', text);
-
-    this.autoFillFromText(text);
-
-  } catch (err) {
-    console.error('Image processing failed', err);
-    alert('Could not read the image. Try again.');
-  }
-}
 
   /* ---------------- HELPERS ---------------- */
 
@@ -603,6 +637,7 @@ async onImageSelected(event: any): Promise<void> {
         expirationDate: String(i.expirationDate ?? ''),
         storageLocation: (i.storageLocation as StorageLocation) ?? 'fridge',
         price: typeof i.price === 'number' && !Number.isNaN(i.price) ? i.price : 0,
+        quantity: typeof i.quantity === 'number' ? i.quantity : 1,
         createdAt: String(i.createdAt ?? new Date().toISOString()),
         opened: typeof i.opened === 'boolean' ? i.opened : false,
         isFrozen: !!i.isFrozen,
