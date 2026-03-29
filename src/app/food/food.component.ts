@@ -133,15 +133,6 @@ export class FoodComponent {
     this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
   }
 
-  addMeal() {
-    const meal = {
-      ...this.form.value,
-      type: 'meal',
-      storageLocation: 'fridge',
-      purchaseDate: new Date().toISOString().split('T')[0],
-    };
-  }
-
   edit(item: FoodItem): void {
     const userInput = this.form.value;
     this.editingId = item.id;
