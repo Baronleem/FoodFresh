@@ -6,6 +6,7 @@ export interface FoodItem {
   expirationDate: string; // store as ISO date string: "2026-02-13"
   storageLocation?: StorageLocation;
   price: number;
+  type: 'grocery' | 'meal';
   createdAt: string; // ISO datetime
   isFrozen?: boolean;
   daysRemainingWhenFrozen?: number;

@@ -54,6 +54,7 @@
         </select>
       </div>
 
+
       <div class="field">
         <label for="quantity">Quantity</label>
         <input id="quantity" type="number" formControlName="quantity" placeholder="1" min="1" />
@@ -62,6 +63,13 @@
         </small>
       </div>
 
+      <div class="field">
+        <label>Category</label>
+        <button type="button" class="switch-type-btn" [class.is-meal]="form.get('type')?.value === 'meal'"
+          (click)="form.get('type')?.setValue(form.get('type')?.value === 'grocery' ? 'meal' : 'grocery')">
+          Currently: {{ form.get('type')?.value === 'meal' ? 'Meal' : 'Grocery' }}
+        </button>
+      </div>
 
       <div class="field">
         <label for="price">Price ($)</label>
@@ -132,6 +140,9 @@
             <span class="qty-multiplier" *ngIf="item.quantity > 1">x{{ item.quantity }}</span>
             <span class="badge status-expired">{{ status(item) }}</span>
           </div>
+          <span class="category-badge" [class.is-meal]="item.type === 'meal'">
+            {{ item.type === 'meal' ? 'Meal' : 'Grocery' }}
+          </span>
 
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
@@ -183,6 +194,9 @@
             <h4>{{ item.name }}</h4>
             <span class="badge status-soon">{{ status(item) }}</span>
           </div>
+          <span class="category-badge" [class.is-meal]="item.type === 'meal'">
+            {{ item.type === 'meal' ? 'Meal' : 'Grocery' }}
+          </span>
 
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
@@ -234,7 +248,9 @@
             <h4>{{ item.name }}</h4>
             <span class="badge status-fresh">{{ status(item) }}</span>
           </div>
-
+          <span class="category-badge" [class.is-meal]="item.type === 'meal'">
+            {{ item.type === 'meal' ? 'Meal' : 'Grocery' }}
+          </span>
           <p class="food-meta">
             Expires: {{ item.expirationDate }} · {{ item.storageLocation }} · {{ item.price | currency }}
             <span class="qty-label" *ngIf="item.quantity > 1">(Qty: {{ item.quantity }})</span>

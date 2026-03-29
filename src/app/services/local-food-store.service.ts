@@ -62,6 +62,7 @@ export class LocalFoodStoreService implements FoodStore {
     expirationDate: string;
     storageLocation?: string;
     price: number;
+    type?: 'grocery' | 'meal';
   }): void {
     const item: FoodItem = {
       id: uuid(),
@@ -69,6 +70,7 @@ export class LocalFoodStoreService implements FoodStore {
       expirationDate: input.expirationDate, // "YYYY-MM-DD"
       storageLocation: (input.storageLocation as StorageLocation) || undefined,
       price: input.price,
+      type: input.type || 'grocery',
       createdAt: new Date().toISOString(),
     };
 

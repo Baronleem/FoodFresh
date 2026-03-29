@@ -16,6 +16,7 @@ interface FoodItem {
   createdAt: string;
   price: number;
   quantity: number;
+  type: 'grocery' | 'meal';
   opened?: boolean;
   isFrozen?: boolean;
   daysRemainingWhenFrozen?: number;
@@ -88,6 +89,9 @@ export class FoodComponent {
     quantity: this.fb.control<number>(1, {
       validators: [Validators.required, Validators.min(1)],
     }),
+    type: this.fb.control<'grocery' | 'meal'>('grocery', {
+      validators: Validators.required,
+    }),
   });
 
   /* ---------------- CRUD ---------------- */
@@ -97,7 +101,7 @@ export class FoodComponent {
       this.form.markAllAsTouched();
       return;
     }
-
+    const userInput = this.form.value;
     const quantity = Number(this.form.get('quantity')?.value || 1);
     const totalPrice = Number(this.form.value.price || 0);
     const pricePerUnit = Number(this.form.value.price || 0);
@@ -110,6 +114,7 @@ export class FoodComponent {
       storageLocation: this.form.value.storageLocation!,
       quantity: quantity,
       price: pricePerUnit,
+      type: userInput.type || 'grocery',
       createdAt: new Date().toISOString(),
       opened: false,
     };
@@ -130,14 +135,25 @@ export class FoodComponent {
     this.form.reset({ name: '', expirationDate: '', storageLocation: 'fridge', price: 0 });
   }
 
+  addMeal() {
+    const meal = {
+      ...this.form.value,
+      type: 'meal',
+      storageLocation: 'fridge',
+      purchaseDate: new Date().toISOString().split('T')[0],
+    };
+  }
+
   edit(item: FoodItem): void {
+    const userInput = this.form.value;
     this.editingId = item.id;
     this.form.setValue({
       name: item.name,
       expirationDate: item.expirationDate,
       storageLocation: item.storageLocation,
-      price: item.price,
       quantity: item.quantity,
+      price: item.price,
+      type: userInput.type || 'grocery',
     });
   }
 
@@ -148,11 +164,10 @@ export class FoodComponent {
       this.form.markAllAsTouched();
       return;
     }
-
+    const userInput = this.form.value;
     const quantity = Number(this.form.get('quantity')?.value || 1);
-    const totalPrice = Number(this.form.value.price || 0);
-    const pricePerUnit = totalPrice / quantity;
-    const names = this.normalizeName(this.form.value.name!);
+    const price = Number(userInput.price || 0);
+    
 
     const updatedList = this.items().map((i) =>
       i.id === this.editingId
@@ -162,7 +177,8 @@ export class FoodComponent {
             expirationDate: this.form.value.expirationDate!,
             storageLocation: this.form.value.storageLocation!,
             quantity: quantity,
-            price: pricePerUnit,
+            price: price,
+            type: userInput.type || 'grocery',
           }
         : i,
     );
@@ -264,7 +280,7 @@ export class FoodComponent {
   /* ---------------- RECIPE SUGGESTIONS ---------------- */
 
   get recipeSuggestions(): RecipeSuggestion[] {
-    const names = this.items().map((i) => i.name.toLowerCase());
+    const names = this.items().filter(i => i.type !== 'meal').map((i) => i.name.toLowerCase());
     const has = (word: string) => names.some((n) => n.includes(word));
 
     const suggestions: RecipeSuggestion[] = [];
@@ -329,7 +345,7 @@ export class FoodComponent {
   }
 
   useSoonRecipeItems(): FoodItem[] {
-    return this.useSoonItems().slice(0, 5);
+    return this.useSoonItems().filter((item) => item.type !== 'meal').slice(0, 5);
   }
 
   /* ---------------- WASTE ---------------- */
@@ -363,7 +379,8 @@ export class FoodComponent {
     if (item.quantity > 1) {
       //reduce the quantity by 1
       const updatedList = this.items().map((i) =>
-       i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,);
+        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,
+      );
       this.saveItems(updatedList);
     } else {
       this.delete(item.id);
@@ -373,10 +390,11 @@ export class FoodComponent {
   eaten(item: FoodItem): void {
     this.eatenItems.push({ ...item, quantity: 1 });
     this.saveStats();
-       if (item.quantity > 1) {
+    if (item.quantity > 1) {
       //reduce the quantity by 1
       const updatedList = this.items().map((i) =>
-       i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,);
+        i.id === item.id ? { ...i, quantity: i.quantity - 1 } : i,
+      );
       this.saveItems(updatedList);
     } else {
       this.delete(item.id);
@@ -420,6 +438,7 @@ export class FoodComponent {
         isFrozen: false,
         expirationDate: newExp.toISOString().split('T')[0],
         daysRemainingWhenFrozen: undefined,
+        type: item.type,
       };
     }
 
@@ -638,6 +657,7 @@ export class FoodComponent {
         storageLocation: (i.storageLocation as StorageLocation) ?? 'fridge',
         price: typeof i.price === 'number' && !Number.isNaN(i.price) ? i.price : 0,
         quantity: typeof i.quantity === 'number' ? i.quantity : 1,
+        type: (i.type as 'grocery' | 'meal') ?? 'grocery',
         createdAt: String(i.createdAt ?? new Date().toISOString()),
         opened: typeof i.opened === 'boolean' ? i.opened : false,
         isFrozen: !!i.isFrozen,
