@@ -103,9 +103,7 @@ export class FoodComponent {
     }
     const userInput = this.form.value;
     const quantity = Number(this.form.get('quantity')?.value || 1);
-    const totalPrice = Number(this.form.value.price || 0);
     const pricePerUnit = Number(this.form.value.price || 0);
-    const names = this.normalizeName(this.form.value.name!);
 
     const item: FoodItem = {
       id: crypto.randomUUID(),
