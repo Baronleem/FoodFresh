@@ -104,6 +104,14 @@ select:focus {
   border-color: #818cf8;
 }
 
+.switch-type-btn {
+  font-size: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+}
+
 /* CAMERA INPUT */
 input[type="file"] {
   padding: 6px;
@@ -114,6 +122,7 @@ input[type="file"] {
   font-size: 0.75rem;
   color: #6b7280;
 }
+
 
 /* BUTTONS */
 .primary-btn,
@@ -255,6 +264,9 @@ input[type="file"] {
   background: #f0fdf4;
   border-color: #bbf7d0;
   color: #15803d;
+}
+.category-badge {
+  font-size: 0.7rem;
 }
 
 /* STORAGE */
