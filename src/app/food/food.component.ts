@@ -577,57 +577,136 @@ export class FoodComponent {
   }
 
   /*----------------PHOTO UPLOAD (BONUS)----------------*/
-  async extractTextFromImage(file: File): Promise<string> {
-    const result = await Tesseract.recognize(file, 'eng');
-    return result.data.text;
+ async onImageSelected(event: any): Promise<void> {
+  const file: File = event.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await this.extractTextFromImage(file);
+
+    console.log('OCR RESULT:\n', text);
+
+    this.autoFillFromText(text);
+
+  } catch (err) {
+    console.error('Image processing failed:', err);
+    alert('Could not read the image. Try again.');
   }
-  autoFillFromText(text: string): void {
-    const lower = text.toLowerCase();
+}
 
-    const dateMatch = text.match(/\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4}/);
+/* OCR */
+async extractTextFromImage(file: File): Promise<string> {
+  const result = await Tesseract.recognize(file, 'eng', {
+    logger: m => console.log(m) // optional progress
+  });
 
-    let formattedDate = '';
+  return result.data.text;
+}
 
-    if (dateMatch) {
-      const raw = dateMatch[0];
+/* MAIN PARSER */
+autoFillFromText(text: string): void {
+  const cleanText = text.replace(/\r/g, '').toLowerCase();
+  const lines = cleanText
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l.length > 2);
 
-      if (raw.includes('/')) {
-        const [d, m, y] = raw.split('/');
-        formattedDate = `${y}-${m}-${d}`;
-      } else {
-        formattedDate = raw;
+  const detectedDate = this.detectExpirationDate(cleanText, lines);
+  const detectedName = this.detectProductName(lines);
+
+  this.form.patchValue({
+    name: detectedName,
+    expirationDate: detectedDate
+  });
+}
+
+/* DATE DETECTION */
+detectExpirationDate(fullText: string, lines: string[]): string {
+  const dateRegex =
+    /\b(\d{4}[-/.]\d{2}[-/.]\d{2}|\d{2}[-/.]\d{2}[-/.]\d{4})\b/;
+
+  const keywords = ['exp', 'expiry', 'best before', 'bb', 'use by'];
+
+  // 1. Look near keywords
+  for (let line of lines) {
+    if (keywords.some(k => line.includes(k))) {
+      const match = line.match(dateRegex);
+      if (match) return this.formatDate(match[0]);
+    }
+  }
+
+  // 2. Fallback: any date in text
+  const fallback = fullText.match(dateRegex);
+  if (fallback) return this.formatDate(fallback[0]);
+
+  return '';
+}
+
+/* PRODUCT NAME DETECTION */
+detectProductName(lines: string[]): string {
+  const ignoreWords = [
+    'ingredients',
+    'nutrition',
+    'calories',
+    'fat',
+    'protein',
+    'carbs',
+    'barcode'
+  ];
+
+  const keywords = [
+    'milk',
+    'bread',
+    'egg',
+    'cheese',
+    'yogurt',
+    'butter',
+    'juice',
+    'chicken',
+    'beef'
+  ];
+
+  // 1. Keyword match
+  for (let line of lines) {
+    for (let word of keywords) {
+      if (line.includes(word)) {
+        return this.capitalize(word);
       }
     }
-
-    let detectedName = '';
-
-    if (lower.includes('milk')) detectedName = 'Milk';
-    else if (lower.includes('bread')) detectedName = 'Bread';
-    else if (lower.includes('egg')) detectedName = 'Eggs';
-    else if (lower.includes('cheese')) detectedName = 'Cheese';
-    else detectedName = 'Unknown item';
-
-    this.form.patchValue({
-      name: detectedName,
-      expirationDate: formattedDate || '',
-    });
   }
 
-  async onImageSelected(event: any): Promise<void> {
-    const file: File = event.target.files[0];
-    if (!file) return;
+  // 2. First meaningful line
+  const candidate = lines.find(line =>
+    !ignoreWords.some(w => line.includes(w)) &&
+    line.length < 40
+  );
 
-    try {
-      const text = await this.extractTextFromImage(file);
+  return candidate ? this.capitalize(candidate) : 'Unknown item';
+}
 
-      console.log('Detected text:', text);
+/* FORMAT DATE */
+formatDate(raw: string): string {
+  raw = raw.replace(/\./g, '-').replace(/\//g, '-');
 
-      this.autoFillFromText(text);
-    } catch (err) {
-      console.error('Image processing failed', err);
-      alert('Could not read the image. Try again.');
-    }
+  const parts = raw.split('-');
+
+  // YYYY-MM-DD
+  if (parts[0].length === 4) {
+    return raw;
   }
+
+  // DD-MM-YYYY → convert
+  if (parts[2]?.length === 4) {
+    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+  }
+
+  return '';
+}
+
+/* CAPITALIZE */
+capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
   /* ---------------- HELPERS ---------------- */
 
